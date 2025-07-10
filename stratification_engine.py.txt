@@ -1,0 +1,1308 @@
+# core/stratification/stratification_engine.py
+import asyncio
+import numpy as np
+from typing import Dict, List, Any, Tuple
+from dataclasses import dataclass
+from enum import Enum
+import threading
+import time
+
+class StratumType(Enum):
+    SEMANTIC = "semantic"
+    SYNTACTIC = "syntactic" 
+    EMOTIONAL = "emotional"
+    TEMPORAL = "temporal"
+    ETHICAL = "ethical"
+    SYMBOLIC = "symbolic"
+    TRUTH = "truth"
+
+@dataclass
+class Stratum:
+    type: StratumType
+    content: Any
+    weight: float
+    confidence: float
+    metadata: Dict[str, Any]
+    processing_time: float
+
+class StratificationEngine:
+    def __init__(self):
+        self.active_strata = {}
+        self.processing_queue = asyncio.Queue()
+        self.completion_callbacks = {}
+        
+        # Initialize stratification processors
+        self.processors = {
+            StratumType.SEMANTIC: SemanticProcessor(),
+            StratumType.SYNTACTIC: SyntacticProcessor(),
+            StratumType.EMOTIONAL: EmotionalProcessor(),
+            StratumType.TEMPORAL: TemporalProcessor(),
+            StratumType.ETHICAL: EthicalProcessor(),
+            StratumType.SYMBOLIC: SymbolicProcessor(),
+            StratumType.TRUTH: TruthProcessor()
+        }
+        
+        # Start processing threads
+        self.processing_threads = []
+        for i in range(7):  # One thread per stratum type
+            thread = threading.Thread(target=self._processing_loop, daemon=True)
+            thread.start()
+            self.processing_threads.append(thread)
+    
+    async def stratify(self, input_data: str, session_id: str = None) -> Dict[str, Stratum]:
+        """Main stratification entry point"""
+        session_id = session_id or f"session_{int(time.time())}"
+        
+        print(f"?? Stratifying input: '{input_data[:50]}...'")
+        
+        # Create stratification tasks
+        tasks = []
+        for stratum_type, processor in self.processors.items():
+            task = asyncio.create_task(
+                self._process_stratum(input_data, stratum_type, processor, session_id)
+            )
+            tasks.append(task)
+        
+        # Execute all stratification layers in parallel
+        strata_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Compile results
+        strata = {}
+        for i, stratum_type in enumerate(self.processors.keys()):
+            if isinstance(strata_results[i], Exception):
+                print(f"? {stratum_type.value} stratification failed: {strata_results[i]}")
+                strata[stratum_type.value] = self._create_error_stratum(stratum_type, strata_results[i])
+            else:
+                strata[stratum_type.value] = strata_results[i]
+        
+        # Synthesize multi-tier context resolution
+        synthesis = await self._synthesize_strata(strata, session_id)
+        
+        print(f"? Stratification complete - {len(strata)} layers processed")
+        return {
+            "strata": strata,
+            "synthesis": synthesis,
+            "session_id": session_id,
+            "timestamp": time.time()
+        }
+    
+    async def _process_stratum(self, input_data: str, stratum_type: StratumType, 
+                             processor, session_id: str) -> Stratum:
+        """Process individual stratum"""
+        start_time = time.time()
+        
+        try:
+            # Process through specific stratum processor
+            result = await processor.process(input_data, session_id)
+            
+            processing_time = time.time() - start_time
+            
+            stratum = Stratum(
+                type=stratum_type,
+                content=result['content'],
+                weight=result.get('weight', 1.0),
+                confidence=result.get('confidence', 0.8),
+                metadata=result.get('metadata', {}),
+                processing_time=processing_time
+            )
+            
+            print(f"  ? {stratum_type.value}: {stratum.confidence:.2f} confidence")
+            return stratum
+            
+        except Exception as e:
+            processing_time = time.time() - start_time
+            return self._create_error_stratum(stratum_type, e, processing_time)
+    
+    async def _synthesize_strata(self, strata: Dict[str, Stratum], session_id: str) -> Dict[str, Any]:
+        """Synthesize all strata into final answer"""
+        print("?? Synthesizing multi-tier context resolution...")
+        
+        # Calculate overall confidence
+        confidences = [s.confidence for s in strata.values() if isinstance(s, Stratum)]
+        overall_confidence = np.mean(confidences) if confidences else 0.0
+        
+        # Priority ranking based on confidence and weight
+        priority_ranking = sorted(
+            [(k, v) for k, v in strata.items() if isinstance(v, Stratum)],
+            key=lambda x: x[1].confidence * x[1].weight,
+            reverse=True
+        )
+        
+        # Identify dominant themes
+        dominant_themes = []
+        for stratum_name, stratum in priority_ranking[:3]:  # Top 3
+            if hasattr(stratum, 'content') and stratum.content:
+                dominant_themes.append({
+                    'stratum': stratum_name,
+                    'theme': stratum.content.get('primary_theme', 'unknown'),
+                    'confidence': stratum.confidence
+                })
+        
+        synthesis = {
+            'overall_confidence': overall_confidence,
+            'priority_ranking': [r[0] for r in priority_ranking],
+            'dominant_themes': dominant_themes,
+            'synthesis_quality': self._calculate_synthesis_quality(strata),
+            'recommended_action': self._recommend_action(strata),
+            'session_id': session_id
+        }
+        
+        return synthesis
+    
+    def _calculate_synthesis_quality(self, strata: Dict[str, Stratum]) -> float:
+        """Calculate quality of stratification synthesis"""
+        if not strata:
+            return 0.0
+        
+        # Factors: confidence consistency, processing success rate, coherence
+        valid_strata = [s for s in strata.values() if isinstance(s, Stratum)]
+        
+        if not valid_strata:
+            return 0.0
+        
+        # Confidence consistency (lower variance = higher quality)
+        confidences = [s.confidence for s in valid_strata]
+        confidence_variance = np.var(confidences)
+        consistency_score = max(0, 1.0 - confidence_variance)
+        
+        # Success rate
+        success_rate = len(valid_strata) / len(strata)
+        
+        # Overall quality
+        quality = (consistency_score + success_rate) / 2
+        return quality
+    
+    def _recommend_action(self, strata: Dict[str, Stratum]) -> str:
+        """Recommend next action based on stratification"""
+        # Analyze ethical and truth strata for action recommendation
+        ethical_stratum = strata.get('ethical')
+        truth_stratum = strata.get('truth')
+        
+        if isinstance(ethical_stratum, Stratum) and ethical_stratum.confidence < 0.7:
+            return "ethical_review_required"
+        elif isinstance(truth_stratum, Stratum) and truth_stratum.confidence < 0.7:
+            return "truth_verification_required"
+        else:
+            return "proceed_to_actioneer"
+    
+    def _create_error_stratum(self, stratum_type: StratumType, error: Exception, 
+                            processing_time: float = 0.0) -> Stratum:
+        """Create error stratum for failed processing"""
+        return Stratum(
+            type=stratum_type,
+            content={'error': str(error)},
+            weight=0.0,
+            confidence=0.0,
+            metadata={'error': True, 'exception_type': type(error).__name__},
+            processing_time=processing_time
+        )
+
+# Individual Stratum Processors
+class SemanticProcessor:
+    """Processes semantic meaning and context"""
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Semantic analysis using NLP techniques
+        words = input_data.lower().split()
+        
+        # Extract semantic features
+        semantic_features = {
+            'word_count': len(words),
+            'unique_words': len(set(words)),
+            'semantic_density': len(set(words)) / len(words) if words else 0,
+            'primary_concepts': self._extract_concepts(words),
+            'semantic_relationships': self._analyze_relationships(words),
+            'context_indicators': self._identify_context(words)
+        }
+        
+        # Calculate semantic confidence
+        confidence = self._calculate_semantic_confidence(semantic_features)
+        
+        return {
+            'content': {
+                'features': semantic_features,
+                'primary_theme': semantic_features['primary_concepts'][0] if semantic_features['primary_concepts'] else 'unknown',
+                'semantic_complexity': self._calculate_complexity(semantic_features)
+            },
+            'confidence': confidence,
+            'weight': 1.0,
+            'metadata': {'processor': 'semantic', 'session_id': session_id}
+        }
+    
+    def _extract_concepts(self, words: List[str]) -> List[str]:
+        """Extract primary concepts from words"""
+        # Simple concept extraction (can be enhanced with NLP models)
+        concept_indicators = {
+            'action': ['do', 'make', 'create', 'build', 'execute', 'run'],
+            'knowledge': ['know', 'learn', 'understand', 'explain', 'teach'],
+            'emotion': ['feel', 'love', 'hate', 'happy', 'sad', 'angry'],
+            'time': ['when', 'before', 'after', 'during', 'now', 'future'],
+            'location': ['where', 'here', 'there', 'place', 'location']
+        }
+        
+        concepts = []
+        for concept, indicators in concept_indicators.items():
+            if any(word in words for word in indicators):
+                concepts.append(concept)
+        
+        return concepts[:3]  # Top 3 concepts
+    
+    def _analyze_relationships(self, words: List[str]) -> List[str]:
+        """Analyze semantic relationships"""
+        relationships = []
+        
+        # Simple relationship detection
+        if any(word in words for word in ['and', 'with', 'plus']):
+            relationships.append('conjunction')
+        if any(word in words for word in ['but', 'however', 'although']):
+            relationships.append('contrast')
+        if any(word in words for word in ['because', 'since', 'due']):
+            relationships.append('causation')
+        
+        return relationships
+    
+    def _identify_context(self, words: List[str]) -> List[str]:
+        """Identify contextual indicators"""
+        contexts = []
+        
+        # Context identification
+        if any(word in words for word in ['please', 'help', 'assist']):
+            contexts.append('request_for_assistance')
+        if any(word in words for word in ['question', 'what', 'how', 'why']):
+            contexts.append('information_seeking')
+        if any(word in words for word in ['do', 'execute', 'run', 'perform']):
+            contexts.append('action_request')
+        
+        return contexts
+    
+    def _calculate_semantic_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate confidence in semantic analysis"""
+        # Base confidence from semantic density
+        base_confidence = features['semantic_density']
+        
+        # Boost for clear concepts
+        concept_boost = len(features['primary_concepts']) * 0.1
+        
+        # Boost for clear relationships
+        relationship_boost = len(features['semantic_relationships']) * 0.05
+        
+        # Boost for clear context
+        context_boost = len(features['context_indicators']) * 0.1
+        
+        confidence = base_confidence + concept_boost + relationship_boost + context_boost
+        return min(1.0, confidence)
+    
+    def _calculate_complexity(self, features: Dict[str, Any]) -> float:
+        """Calculate semantic complexity"""
+        # More concepts and relationships = higher complexity
+        complexity = (
+            len(features['primary_concepts']) * 0.3 +
+            len(features['semantic_relationships']) * 0.4 +
+            len(features['context_indicators']) * 0.3
+        )
+        return min(1.0, complexity)
+
+class SyntacticProcessor:
+    """Processes syntactic structure and grammar"""
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Syntactic analysis
+        syntactic_features = {
+            'sentence_count': len([s for s in input_data.split('.') if s.strip()]),
+            'punctuation_usage': self._analyze_punctuation(input_data),
+            'grammar_patterns': self._analyze_grammar(input_data),
+            'structure_quality': self._assess_structure(input_data),
+            'completeness': self._assess_completeness(input_data)
+        }
+        
+        confidence = self._calculate_syntactic_confidence(syntactic_features)
+        
+        return {
+            'content': {
+                'features': syntactic_features,
+                'primary_theme': 'structural_analysis',
+                'syntactic_quality': confidence
+            },
+            'confidence': confidence,
+            'weight': 0.8,
+            'metadata': {'processor': 'syntactic', 'session_id': session_id}
+        }
+    
+    def _analyze_punctuation(self, text: str) -> Dict[str, int]:
+        """Analyze punctuation usage"""
+        punctuation_count = {
+            'periods': text.count('.'),
+            'commas': text.count(','),
+            'questions': text.count('?'),
+            'exclamations': text.count('!'),
+            'colons': text.count(':'),
+            'semicolons': text.count(';')
+        }
+        return punctuation_count
+    
+    def _analyze_grammar(self, text: str) -> List[str]:
+        """Simple grammar pattern analysis"""
+        patterns = []
+        
+        # Simple pattern detection
+        if '?' in text:
+            patterns.append('interrogative')
+        if '!' in text:
+            patterns.append('exclamatory')
+        if any(word in text.lower() for word in ['if', 'when', 'while']):
+            patterns.append('conditional')
+        if any(word in text.lower() for word in ['and', 'or', 'but']):
+            patterns.append('compound')
+        
+        return patterns
+    
+    def _assess_structure(self, text: str) -> float:
+        """Assess structural quality"""
+        # Simple structure assessment
+        if not text.strip():
+            return 0.0
+        
+        # Check for basic sentence structure
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+        if not sentences:
+            return 0.3
+        
+        # Average sentence length (reasonable range)
+        avg_length = np.mean([len(s.split()) for s in sentences])
+        length_score = 1.0 if 5 <= avg_length <= 20 else 0.7
+        
+        # Punctuation appropriateness
+        punct_score = 1.0 if any(p in text for p in '.!?') else 0.5
+        
+        return (length_score + punct_score) / 2
+    
+    def _assess_completeness(self, text: str) -> float:
+        """Assess syntactic completeness"""
+        # Basic completeness checks
+        if not text.strip():
+            return 0.0
+        
+        # Has proper ending
+        has_ending = text.strip()[-1] in '.!?'
+        
+        # Has reasonable length
+        word_count = len(text.split())
+        length_adequate = word_count >= 3
+        
+        # Has subject-verb pattern (very simple check)
+        has_structure = len(text.split()) >= 2
+        
+        completeness = sum([has_ending, length_adequate, has_structure]) / 3
+        return completeness
+    
+    def _calculate_syntactic_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate syntactic confidence"""
+        structure_weight = features['structure_quality'] * 0.4
+        completeness_weight = features['completeness'] * 0.4
+        pattern_weight = len(features['grammar_patterns']) * 0.05
+        
+        confidence = structure_weight + completeness_weight + pattern_weight
+        return min(1.0, confidence)
+
+class EmotionalProcessor:
+    """Processes emotional content and tone"""
+    
+    def __init__(self):
+        self.emotion_indicators = {
+            'joy': ['happy', 'excited', 'pleased', 'wonderful', 'great', 'awesome', 'love'],
+            'sadness': ['sad', 'disappointed', 'unhappy', 'terrible', 'awful', 'depressed'],
+            'anger': ['angry', 'furious', 'mad', 'annoyed', 'irritated', 'hate'],
+            'fear': ['scared', 'afraid', 'worried', 'anxious', 'nervous', 'terrified'],
+            'surprise': ['surprised', 'amazed', 'shocked', 'astonished', 'unexpected'],
+            'neutral': ['okay', 'fine', 'normal', 'regular', 'standard']
+        }
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Emotional analysis
+        words = input_data.lower().split()
+        
+        emotional_features = {
+            'detected_emotions': self._detect_emotions(words),
+            'emotional_intensity': self._calculate_intensity(input_data),
+            'tone_indicators': self._analyze_tone(input_data),
+            'emotional_consistency': self._check_consistency(words),
+            'sentiment_polarity': self._calculate_polarity(words)
+        }
+        
+        confidence = self._calculate_emotional_confidence(emotional_features)
+        
+        return {
+            'content': {
+                'features': emotional_features,
+                'primary_theme': emotional_features['detected_emotions'][0] if emotional_features['detected_emotions'] else 'neutral',
+                'emotional_state': self._determine_state(emotional_features)
+            },
+            'confidence': confidence,
+            'weight': 1.2,  # Higher weight for emotional processing
+            'metadata': {'processor': 'emotional', 'session_id': session_id}
+        }
+    
+    def _detect_emotions(self, words: List[str]) -> List[str]:
+        """Detect emotions in text"""
+        detected = []
+        
+        for emotion, indicators in self.emotion_indicators.items():
+            if any(word in words for word in indicators):
+                detected.append(emotion)
+        
+        return detected[:3]  # Top 3 emotions
+    
+    def _calculate_intensity(self, text: str) -> float:
+        """Calculate emotional intensity"""
+        # Intensity indicators
+        intensity_markers = ['very', 'extremely', 'really', 'so', 'totally', '!', '!!', '!!!']
+        
+        intensity_score = 0.5  # Base intensity
+        
+        for marker in intensity_markers:
+            if marker in text.lower():
+                if marker.startswith('!'):
+                    intensity_score += len(marker) * 0.1
+                else:
+                    intensity_score += 0.15
+        
+        return min(1.0, intensity_score)
+    
+    def _analyze_tone(self, text: str) -> List[str]:
+        """Analyze tone indicators"""
+        tones = []
+        
+        # Tone analysis
+        if any(marker in text for marker in ['!', '?!']):
+            tones.append('emphatic')
+        if any(word in text.lower() for word in ['please', 'kindly', 'would you']):
+            tones.append('polite')
+        if any(word in text.lower() for word in ['must', 'need', 'urgent', 'immediately']):
+            tones.append('urgent')
+        if any(word in text.lower() for word in ['maybe', 'perhaps', 'possibly', 'might']):
+            tones.append('tentative')
+        
+        return tones
+    
+    def _check_consistency(self, words: List[str]) -> float:
+        """Check emotional consistency"""
+        detected_emotions = []
+        
+        for emotion, indicators in self.emotion_indicators.items():
+            if any(word in words for word in indicators):
+                detected_emotions.append(emotion)
+        
+        if not detected_emotions:
+            return 1.0  # Neutral is consistent
+        
+        # Check for conflicting emotions
+        positive_emotions = ['joy']
+        negative_emotions = ['sadness', 'anger', 'fear']
+        
+        has_positive = any(e in positive_emotions for e in detected_emotions)
+        has_negative = any(e in negative_emotions for e in detected_emotions)
+        
+        if has_positive and has_negative:
+            return 0.5  # Mixed emotions
+        else:
+            return 1.0  # Consistent emotions
+    
+    def _calculate_polarity(self, words: List[str]) -> float:
+        """Calculate sentiment polarity (-1 to 1)"""
+        positive_score = 0
+        negative_score = 0
+        
+        positive_words = self.emotion_indicators['joy']
+        negative_words = (self.emotion_indicators['sadness'] + 
+                         self.emotion_indicators['anger'] + 
+                         self.emotion_indicators['fear'])
+        
+        for word in words:
+            if word in positive_words:
+                positive_score += 1
+            elif word in negative_words:
+                negative_score += 1
+        
+        total_emotional_words = positive_score + negative_score
+        if total_emotional_words == 0:
+            return 0.0  # Neutral
+        
+        polarity = (positive_score - negative_score) / total_emotional_words
+        return polarity
+    
+    def _determine_state(self, features: Dict[str, Any]) -> str:
+        """Determine overall emotional state"""
+        if not features['detected_emotions']:
+            return 'neutral'
+        
+        primary_emotion = features['detected_emotions'][0]
+        intensity = features['emotional_intensity']
+        
+        if intensity > 0.7:
+            return f"highly_{primary_emotion}"
+        elif intensity > 0.4:
+            return f"moderately_{primary_emotion}"
+        else:
+            return f"mildly_{primary_emotion}"
+    
+    def _calculate_emotional_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate emotional processing confidence"""
+        # Base confidence from emotion detection
+        emotion_confidence = len(features['detected_emotions']) * 0.2
+        
+        # Consistency bonus
+        consistency_bonus = features['emotional_consistency'] * 0.3
+        
+        # Intensity clarity bonus
+        intensity_bonus = features['emotional_intensity'] * 0.2
+        
+        # Tone clarity bonus
+        tone_bonus = len(features['tone_indicators']) * 0.1
+        
+        confidence = emotion_confidence + consistency_bonus + intensity_bonus + tone_bonus
+        return min(1.0, max(0.3, confidence))  # Minimum 0.3 confidence
+
+class TemporalProcessor:
+    """Processes temporal context and timing"""
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Temporal analysis
+        temporal_features = {
+            'time_references': self._extract_time_references(input_data),
+            'urgency_level': self._assess_urgency(input_data),
+            'temporal_context': self._analyze_context(input_data),
+            'sequence_indicators': self._identify_sequences(input_data),
+            'duration_estimates': self._estimate_durations(input_data)
+        }
+        
+        confidence = self._calculate_temporal_confidence(temporal_features)
+        
+        return {
+            'content': {
+                'features': temporal_features,
+                'primary_theme': 'temporal_analysis',
+                'temporal_priority': self._calculate_priority(temporal_features)
+            },
+            'confidence': confidence,
+            'weight': 0.9,
+            'metadata': {'processor': 'temporal', 'session_id': session_id}
+        }
+    
+    def _extract_time_references(self, text: str) -> List[str]:
+        """Extract temporal references"""
+        time_indicators = [
+            'now', 'today', 'tomorrow', 'yesterday', 'soon', 'later',
+            'morning', 'afternoon', 'evening', 'night',
+            'immediately', 'urgent', 'asap', 'quick', 'fast',
+            'before', 'after', 'during', 'while', 'when'
+        ]
+        
+        references = []
+        text_lower = text.lower()
+        
+        for indicator in time_indicators:
+            if indicator in text_lower:
+                references.append(indicator)
+        
+        return references
+    
+    def _assess_urgency(self, text: str) -> float:
+        """Assess urgency level (0-1)"""
+        urgency_indicators = {
+            'urgent': 0.9,
+            'emergency': 1.0,
+            'asap': 0.8,
+            'immediately': 0.9,
+            'now': 0.7,
+            'quick': 0.6,
+            'fast': 0.6,
+            'soon': 0.4,
+            'later': 0.2,
+            'eventually': 0.1
+        }
+        
+        max_urgency = 0.0
+        text_lower = text.lower()
+        
+        for indicator, urgency in urgency_indicators.items():
+            if indicator in text_lower:
+                max_urgency = max(max_urgency, urgency)
+        
+        return max_urgency
+    
+    def _analyze_context(self, text: str) -> List[str]:
+        """Analyze temporal context"""
+        contexts = []
+        text_lower = text.lower()
+        
+        if any(word in text_lower for word in ['deadline', 'due', 'schedule']):
+            contexts.append('deadline_related')
+        if any(word in text_lower for word in ['plan', 'prepare', 'future']):
+            contexts.append('planning')
+        if any(word in text_lower for word in ['history', 'past', 'previous']):
+            contexts.append('historical')
+        if any(word in text_lower for word in ['ongoing', 'current', 'present']):
+            contexts.append('current')
+        
+        return contexts
+    
+    def _identify_sequences(self, text: str) -> List[str]:
+        """Identify sequence indicators"""
+        sequences = []
+        text_lower = text.lower()
+        
+        sequence_words = ['first', 'second', 'third', 'then', 'next', 'finally', 'step']
+        
+        for word in sequence_words:
+            if word in text_lower:
+                sequences.append(word)
+        
+        return sequences
+    
+    def _estimate_durations(self, text: str) -> Dict[str, str]:
+        """Estimate task durations"""
+        # Simple duration estimation based on content
+        word_count = len(text.split())
+        
+        if word_count < 10:
+            estimated_processing = 'short'
+        elif word_count < 50:
+            estimated_processing = 'medium'
+        else:
+            estimated_processing = 'long'
+        
+        return {
+            'processing_time': estimated_processing,
+            'complexity_indicator': 'high' if word_count > 100 else 'medium' if word_count > 30 else 'low'
+        }
+    
+    def _calculate_priority(self, features: Dict[str, Any]) -> float:
+        """Calculate temporal priority"""
+        urgency_weight = features['urgency_level'] * 0.6
+        reference_weight = len(features['time_references']) * 0.1
+        sequence_weight = len(features['sequence_indicators']) * 0.05
+        
+        priority = urgency_weight + reference_weight + sequence_weight
+        return min(1.0, priority)
+    
+    def _calculate_temporal_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate temporal processing confidence"""
+        # Base confidence from time references
+        reference_confidence = min(1.0, len(features['time_references']) * 0.2)
+        
+        # Urgency clarity
+        urgency_confidence = features['urgency_level'] * 0.3
+        
+        # Context clarity
+        context_confidence = len(features['temporal_context']) * 0.15
+        
+        confidence = reference_confidence + urgency_confidence + context_confidence
+        return min(1.0, max(0.4, confidence))
+
+class EthicalProcessor:
+    """Processes ethical implications and moral considerations"""
+    
+    def __init__(self):
+        self.ethical_frameworks = {
+            'harm_prevention': ['harm', 'hurt', 'damage', 'destroy', 'kill', 'injure'],
+            'fairness': ['fair', 'equal', 'just', 'equitable', 'bias', 'discrimination'],
+            'autonomy': ['choice', 'freedom', 'consent', 'voluntary', 'force', 'coerce'],
+            'honesty': ['truth', 'honest', 'lie', 'deceive', 'mislead', 'fake'],
+            'privacy': ['private', 'confidential', 'secret', 'personal', 'surveillance']
+        }
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Ethical analysis
+        ethical_features = {
+            'ethical_concerns': self._identify_concerns(input_data),
+            'moral_frameworks': self._apply_frameworks(input_data),
+            'risk_assessment': self._assess_risks(input_data),
+            'ethical_score': self._calculate_ethical_score(input_data),
+            'recommendations': self._generate_recommendations(input_data)
+        }
+        
+        confidence = self._calculate_ethical_confidence(ethical_features)
+        
+        return {
+            'content': {
+                'features': ethical_features,
+                'primary_theme': 'ethical_analysis',
+                'ethical_status': self._determine_status(ethical_features)
+            },
+            'confidence': confidence,
+            'weight': 1.5,  # Highest weight for ethical considerations
+            'metadata': {'processor': 'ethical', 'session_id': session_id}
+        }
+    
+    def _identify_concerns(self, text: str) -> List[str]:
+        """Identify ethical concerns"""
+        concerns = []
+        text_lower = text.lower()
+        
+        for framework, indicators in self.ethical_frameworks.items():
+            concern_indicators = [ind for ind in indicators if ind in text_lower]
+            if concern_indicators:
+                concerns.append({
+                    'framework': framework,
+                    'indicators': concern_indicators,
+                    'severity': self._assess_severity(concern_indicators, framework)
+                })
+        
+        return concerns
+    
+    def _apply_frameworks(self, text: str) -> Dict[str, float]:
+        """Apply ethical frameworks"""
+        framework_scores = {}
+        text_lower = text.lower()
+        
+        for framework, indicators in self.ethical_frameworks.items():
+            positive_indicators = []
+            negative_indicators = []
+            
+            # Categorize indicators (simplified)
+            if framework == 'harm_prevention':
+                negative_indicators = indicators  # All are concerning
+            elif framework == 'honesty':
+                positive_indicators = ['truth', 'honest']
+                negative_indicators = ['lie', 'deceive', 'mislead', 'fake']
+            else:
+                # Default: first half positive, second half negative
+                mid = len(indicators) // 2
+                positive_indicators = indicators[:mid]
+                negative_indicators = indicators[mid:]
+            
+            # Calculate score
+            positive_count = sum(1 for ind in positive_indicators if ind in text_lower)
+            negative_count = sum(1 for ind in negative_indicators if ind in text_lower)
+            
+            total_count = positive_count + negative_count
+            if total_count == 0:
+                framework_scores[framework] = 0.8  # Neutral/no concerns
+            else:
+                score = (positive_count - negative_count) / total_count
+                framework_scores[framework] = max(0, (score + 1) / 2)  # Normalize to 0-1
+        
+        return framework_scores
+    
+    def _assess_risks(self, text: str) -> Dict[str, Any]:
+        """Assess ethical risks"""
+        risk_indicators = {
+            'high_risk': ['illegal', 'harmful', 'dangerous', 'weapon', 'violence'],
+            'medium_risk': ['manipulate', 'exploit', 'deceive', 'private', 'secret'],
+            'low_risk': ['question', 'ask', 'help', 'assist', 'learn']
+        }
+        
+        text_lower = text.lower()
+        identified_risks = {}
+        
+        for risk_level, indicators in risk_indicators.items():
+            matches = [ind for ind in indicators if ind in text_lower]
+            if matches:
+                identified_risks[risk_level] = matches
+        
+        # Overall risk level
+        if 'high_risk' in identified_risks:
+            overall_risk = 'high'
+        elif 'medium_risk' in identified_risks:
+            overall_risk = 'medium'
+        else:
+            overall_risk = 'low'
+        
+        return {
+            'overall_risk': overall_risk,
+            'identified_risks': identified_risks,
+            'risk_score': self._calculate_risk_score(identified_risks)
+        }
+    
+    def _calculate_ethical_score(self, text: str) -> float:
+        """Calculate overall ethical score (0-1, higher is better)"""
+        framework_scores = self._apply_frameworks(text)
+        risk_assessment = self._assess_risks(text)
+        
+        # Average framework scores
+        avg_framework_score = np.mean(list(framework_scores.values())) if framework_scores else 0.8
+        
+        # Risk penalty
+        risk_penalty = 1.0 - risk_assessment['risk_score']
+        
+        # Combined score
+        ethical_score = avg_framework_score * risk_penalty
+        return ethical_score
+    
+    def _generate_recommendations(self, text: str) -> List[str]:
+        """Generate ethical recommendations"""
+        recommendations = []
+        concerns = self._identify_concerns(text)
+        
+        for concern in concerns:
+            framework = concern['framework']
+            severity = concern['severity']
+            
+            if severity > 0.7:
+                if framework == 'harm_prevention':
+                    recommendations.append("Review for potential harm - consider safer alternatives")
+                elif framework == 'honesty':
+                    recommendations.append("Ensure truthfulness and transparency")
+                elif framework == 'privacy':
+                    recommendations.append("Protect privacy and confidential information")
+                elif framework == 'fairness':
+                    recommendations.append("Check for bias and ensure fair treatment")
+                elif framework == 'autonomy':
+                    recommendations.append("Respect user autonomy and choice")
+        
+        if not recommendations:
+            recommendations.append("No significant ethical concerns identified")
+        
+        return recommendations
+    
+    def _assess_severity(self, indicators: List[str], framework: str) -> float:
+        """Assess severity of ethical concerns"""
+        if not indicators:
+            return 0.0
+        
+        # Framework-specific severity weights
+        severity_weights = {
+            'harm_prevention': 1.0,  # Highest severity
+            'honesty': 0.8,
+            'privacy': 0.7,
+            'fairness': 0.6,
+            'autonomy': 0.5
+        }
+        
+        base_weight = severity_weights.get(framework, 0.5)
+        indicator_count = len(indicators)
+        
+        # More indicators = higher severity
+        severity = base_weight * min(1.0, indicator_count * 0.3)
+        return severity
+    
+    def _calculate_risk_score(self, identified_risks: Dict[str, List[str]]) -> float:
+        """Calculate risk score (0-1, higher is more risky)"""
+        if 'high_risk' in identified_risks:
+            return 0.9
+        elif 'medium_risk' in identified_risks:
+            return 0.6
+        elif identified_risks:  # Only low risk
+            return 0.3
+        else:
+            return 0.1  # Minimal risk
+    
+    def _determine_status(self, features: Dict[str, Any]) -> str:
+        """Determine ethical status"""
+        ethical_score = features['ethical_score']
+        risk_level = features['risk_assessment']['overall_risk']
+        
+        if ethical_score >= 0.8 and risk_level == 'low':
+            return 'ethically_approved'
+        elif ethical_score >= 0.6 and risk_level in ['low', 'medium']:
+            return 'ethically_acceptable'
+        elif ethical_score >= 0.4:
+            return 'ethical_review_required'
+        else:
+            return 'ethically_rejected'
+    
+    def _calculate_ethical_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate ethical processing confidence"""
+        # Confidence based on clarity of ethical analysis
+        concern_clarity = len(features['ethical_concerns']) * 0.1
+        framework_clarity = len(features['moral_frameworks']) * 0.1
+        recommendation_clarity = len(features['recommendations']) * 0.05
+        
+        # Base confidence
+        base_confidence = 0.7
+        
+        confidence = base_confidence + concern_clarity + framework_clarity + recommendation_clarity
+        return min(1.0, confidence)
+
+class SymbolicProcessor:
+    """Processes symbolic meaning and archetypal patterns"""
+    
+    def __init__(self):
+        self.archetypes = {
+            'hero': ['hero', 'champion', 'warrior', 'leader', 'brave', 'courage'],
+            'sage': ['wise', 'knowledge', 'teacher', 'mentor', 'learn', 'wisdom'],
+            'creator': ['create', 'build', 'make', 'design', 'invent', 'craft'],
+            'caregiver': ['help', 'care', 'nurture', 'protect', 'support', 'heal'],
+            'explorer': ['explore', 'discover', 'adventure', 'journey', 'seek', 'find'],
+            'rebel': ['rebel', 'revolution', 'change', 'fight', 'challenge', 'break'],
+            'lover': ['love', 'passion', 'beauty', 'harmony', 'connection', 'unity'],
+            'jester': ['fun', 'play', 'humor', 'joke', 'entertain', 'laughter']
+        }
+        
+        self.symbols = {
+            'transformation': ['change', 'transform', 'evolve', 'grow', 'become'],
+            'journey': ['path', 'road', 'journey', 'travel', 'move', 'go'],
+            'conflict': ['fight', 'battle', 'struggle', 'conflict', 'war', 'oppose'],
+            'unity': ['together', 'unite', 'one', 'harmony', 'connect', 'join'],
+            'knowledge': ['know', 'learn', 'understand', 'discover', 'reveal'],
+            'power': ['power', 'control', 'force', 'strength', 'authority', 'rule'],
+            'freedom': ['free', 'freedom', 'liberty', 'escape', 'release', 'independence'],
+            'sacrifice': ['sacrifice', 'give', 'offer', 'surrender', 'lose', 'cost']
+        }
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Symbolic analysis
+        symbolic_features = {
+            'detected_archetypes': self._detect_archetypes(input_data),
+            'symbolic_themes': self._identify_symbols(input_data),
+            'mythological_patterns': self._analyze_patterns(input_data),
+            'symbolic_depth': self._calculate_depth(input_data),
+            'archetypal_resonance': self._measure_resonance(input_data)
+        }
+        
+        confidence = self._calculate_symbolic_confidence(symbolic_features)
+        
+        return {
+            'content': {
+                'features': symbolic_features,
+                'primary_theme': self._determine_primary_theme(symbolic_features),
+                'symbolic_meaning': self._extract_meaning(symbolic_features)
+            },
+            'confidence': confidence,
+            'weight': 1.1,
+            'metadata': {'processor': 'symbolic', 'session_id': session_id}
+        }
+    
+    def _detect_archetypes(self, text: str) -> List[Dict[str, Any]]:
+        """Detect archetypal patterns"""
+        detected = []
+        text_lower = text.lower()
+        
+        for archetype, indicators in self.archetypes.items():
+            matches = [ind for ind in indicators if ind in text_lower]
+            if matches:
+                strength = len(matches) / len(indicators)
+                detected.append({
+                    'archetype': archetype,
+                    'strength': strength,
+                    'indicators': matches
+                })
+        
+        # Sort by strength
+        detected.sort(key=lambda x: x['strength'], reverse=True)
+        return detected[:3]  # Top 3 archetypes
+    
+    def _identify_symbols(self, text: str) -> List[Dict[str, Any]]:
+        """Identify symbolic themes"""
+        identified = []
+        text_lower = text.lower()
+        
+        for symbol, indicators in self.symbols.items():
+            matches = [ind for ind in indicators if ind in text_lower]
+            if matches:
+                relevance = len(matches) / len(indicators)
+                identified.append({
+                    'symbol': symbol,
+                    'relevance': relevance,
+                    'indicators': matches
+                })
+        
+        # Sort by relevance
+        identified.sort(key=lambda x: x['relevance'], reverse=True)
+        return identified[:3]  # Top 3 symbols
+    
+    def _analyze_patterns(self, text: str) -> List[str]:
+        """Analyze mythological patterns"""
+        patterns = []
+        text_lower = text.lower()
+        
+        # Common mythological patterns
+        pattern_indicators = {
+            'journey_quest': ['journey', 'quest', 'search', 'find', 'seek'],
+            'death_rebirth': ['death', 'end', 'birth', 'begin', 'new', 'transform'],
+            'fall_redemption': ['fall', 'fail', 'rise', 'redeem', 'recover', 'restore'],
+            'creation_destruction': ['create', 'build', 'destroy', 'end', 'make', 'break'],
+            'separation_return': ['leave', 'go', 'return', 'come', 'home', 'back']
+        }
+        
+        for pattern, indicators in pattern_indicators.items():
+            if sum(1 for ind in indicators if ind in text_lower) >= 2:
+                patterns.append(pattern)
+        
+        return patterns
+    
+    def _calculate_depth(self, text: str) -> float:
+        """Calculate symbolic depth"""
+        archetypes = self._detect_archetypes(text)
+        symbols = self._identify_symbols(text)
+        patterns = self._analyze_patterns(text)
+        
+        # Depth based on richness of symbolic content
+        archetype_depth = len(archetypes) * 0.3
+        symbol_depth = len(symbols) * 0.3
+        pattern_depth = len(patterns) * 0.4
+        
+        total_depth = archetype_depth + symbol_depth + pattern_depth
+        return min(1.0, total_depth)
+    
+    def _measure_resonance(self, text: str) -> float:
+        """Measure archetypal resonance"""
+        archetypes = self._detect_archetypes(text)
+        
+        if not archetypes:
+            return 0.3  # Minimal resonance
+        
+        # Average strength of detected archetypes
+        avg_strength = np.mean([arch['strength'] for arch in archetypes])
+        
+        # Bonus for multiple coherent archetypes
+        coherence_bonus = 0.1 if len(archetypes) > 1 else 0
+        
+        resonance = avg_strength + coherence_bonus
+        return min(1.0, resonance)
+    
+    def _determine_primary_theme(self, features: Dict[str, Any]) -> str:
+        """Determine primary symbolic theme"""
+        archetypes = features['detected_archetypes']
+        symbols = features['symbolic_themes']
+        
+        if archetypes:
+            return f"archetypal_{archetypes[0]['archetype']}"
+        elif symbols:
+            return f"symbolic_{symbols[0]['symbol']}"
+        else:
+            return 'symbolic_neutral'
+    
+    def _extract_meaning(self, features: Dict[str, Any]) -> str:
+        """Extract symbolic meaning"""
+        archetypes = features['detected_archetypes']
+        symbols = features['symbolic_themes']
+        patterns = features['mythological_patterns']
+        
+        meaning_components = []
+        
+        if archetypes:
+            primary_archetype = archetypes[0]['archetype']
+            meaning_components.append(f"Embodies the {primary_archetype} archetype")
+        
+        if symbols:
+            primary_symbol = symbols[0]['symbol']
+            meaning_components.append(f"Symbolizes {primary_symbol}")
+        
+        if patterns:
+            primary_pattern = patterns[0]
+            meaning_components.append(f"Follows {primary_pattern.replace('_', ' ')} pattern")
+        
+        if meaning_components:
+            return '. '.join(meaning_components)
+        else:
+            return "Limited symbolic content detected"
+    
+    def _calculate_symbolic_confidence(self, features: Dict[str, Any]) -> float:
+        """Calculate symbolic processing confidence"""
+        # Confidence based on symbolic richness
+        archetype_confidence = len(features['detected_archetypes']) * 0.2
+        symbol_confidence = len(features['symbolic_themes']) * 0.2
+        pattern_confidence = len(features['mythological_patterns']) * 0.1
+        depth_confidence = features['symbolic_depth'] * 0.3
+        resonance_confidence = features['archetypal_resonance'] * 0.2
+        
+        confidence = (archetype_confidence + symbol_confidence + pattern_confidence + 
+                     depth_confidence + resonance_confidence)
+        
+        return min(1.0, max(0.3, confidence))
+
+class TruthProcessor:
+    """Processes truth value and factual accuracy"""
+    
+    async def process(self, input_data: str, session_id: str) -> Dict[str, Any]:
+        # Truth analysis
+        truth_features = {
+            'factual_claims': self._extract_claims(input_data),
+            'certainty_indicators': self._analyze_certainty(input_data),
+            'contradiction_check': self._check_contradictions(input_data),
+            'verification_status': self._assess_verifiability(input_data),
+            'truth_confidence': self._calculate_truth_confidence(input_data)
+        }
+        
+        confidence = truth_features['truth_confidence']
+        
+        return {
+            'content': {
+                'features': truth_features,
+                'primary_theme': 'truth_analysis',
+                'truth_assessment': self._assess_truth(truth_features)
+            },
+            'confidence': confidence,
+            'weight': 1.3,  # High weight for truth processing
+            'metadata': {'processor': 'truth', 'session_id': session_id}
+        }
+    
+    def _extract_claims(self, text: str) -> List[Dict[str, Any]]:
+        """Extract factual claims"""
+        # Simple claim extraction (can be enhanced with NLP)
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+        claims = []
+        
+        for sentence in sentences:
+            # Look for assertive statements
+            if any(word in sentence.lower() for word in ['is', 'are', 'was', 'were', 'will', 'can', 'must']):
+                claim_type = self._classify_claim(sentence)
+                claims.append({
+                    'statement': sentence,
+                    'type': claim_type,
+                    'verifiability': self._assess_claim_verifiability(sentence)
+                })
+        
+        return claims
+    
+    def _classify_claim(self, sentence: str) -> str:
+        """Classify type of claim"""
+        sentence_lower = sentence.lower()
+        
+        if any(word in sentence_lower for word in ['fact', 'true', 'false', 'evidence']):
+            return 'factual'
+        elif any(word in sentence_lower for word in ['believe', 'think', 'opinion', 'feel']):
+            return 'opinion'
+        elif any(word in sentence_lower for word in ['will', 'would', 'might', 'could']):
+            return 'predictive'
+        elif any(word in sentence_lower for word in ['should', 'must', 'ought']):
+            return 'normative'
+        else:
+            return 'descriptive'
+    
+    def _analyze_certainty(self, text: str) -> Dict[str, float]:
+        """Analyze certainty indicators"""
+        certainty_markers = {
+            'high_certainty': ['definitely', 'certainly', 'absolutely', 'clearly', 'obviously'],
+            'medium_certainty': ['probably', 'likely', 'generally', 'usually', 'typically'],
+            'low_certainty': ['maybe', 'perhaps', 'possibly', 'might', 'could'],
+            'uncertainty': ['unsure', 'unclear', 'unknown', 'uncertain', 'doubt']
+        }
+        
+        text_lower = text.lower()
+        certainty_scores = {}
+        
+        for level, markers in certainty_markers.items():
+            score = sum(1 for marker in markers if marker in text_lower)
+            certainty_scores[level] = score
+        
+        # Calculate overall certainty
+        total_markers = sum(certainty_scores.values())
+        if total_markers == 0:
+            overall_certainty = 0.5  # Neutral
+        else:
+            weighted_score = (
+                certainty_scores['high_certainty'] * 1.0 +
+                certainty_scores['medium_certainty'] * 0.7 +
+                certainty_scores['low_certainty'] * 0.3 +
+                certainty_scores['uncertainty'] * 0.0
+            )
+            overall_certainty = weighted_score / total_markers
+        
+        certainty_scores['overall'] = overall_certainty
+        return certainty_scores
+    
+    def _check_contradictions(self, text: str) -> Dict[str, Any]:
+        """Check for internal contradictions"""
+        # Simple contradiction detection
+        contradiction_indicators = [
+            ('but', 'however', 'although', 'despite'),
+            ('not', 'never', 'no'),
+            ('always', 'never'),
+            ('all', 'none'),
+            ('yes', 'no')
+        ]
+        
+        text_lower = text.lower()
+        contradictions = []
+        
+        # Look for opposing terms in close proximity
+        words = text_lower.split()
+        for i, word in enumerate(words):
+            for group in contradiction_indicators:
+                if word in group:
+                    # Check surrounding words for opposites
+                    context = words[max(0, i-5):min(len(words), i+6)]
+                    for other_word in group:
+                        if other_word != word and other_word in context:
+                            contradictions.append({
+                                'term1': word,
+                                'term2': other_word,
+                                'context': ' '.join(context)
+                            })
+        
+        return {
+            'found_contradictions': len(contradictions) > 0,
+            'contradiction_count': len(contradictions),
+            'contradictions': contradictions[:3]  # Limit to 3 examples
+        }
+    
+    def _assess_verifiability(self, text: str) -> str:
+        """Assess how verifiable the claims are"""
+        claims = self._extract_claims(text)
+        
+        if not claims:
+            return 'no_claims'
+        
+        verifiable_count = sum(1 for claim in claims if claim['verifiability'] == 'verifiable')
+        total_claims = len(claims)
+        
+        verifiability_ratio = verifiable_count / total_claims
+        
+        if verifiability_ratio >= 0.8:
+            return 'highly_verifiable'
+        elif verifiability_ratio >= 0.5:
+            return 'moderately_verifiable'
+        elif verifiability_ratio >= 0.2:
+            return 'partially_verifiable'
+        else:
+            return 'largely_unverifiable'
+    
+    def _assess_claim_verifiability(self, claim: str) -> str:
+        """Assess if a claim can be verified"""
+        claim_lower = claim.lower()
+        
+        # Indicators of verifiable claims
+        if any(word in claim_lower for word in ['research', 'study', 'data', 'evidence', 'proof']):
+            return 'verifiable'
+        elif any(word in claim_lower for word in ['fact', 'statistics', 'measurement', 'observation']):
+            return 'verifiable'
+        elif any(word in claim_lower for word in ['opinion', 'believe', 'feel', 'think']):
+            return 'subjective'
+        elif any(word in claim_lower for word in ['future', 'will', 'predict', 'forecast']):
+            return 'predictive'
+        else:
+            return 'uncertain'
+    
+    def _calculate_truth_confidence(self, text: str) -> float:
+        """Calculate overall truth confidence"""
+        claims = self._extract_claims(text)
+        certainty = self._analyze_certainty(text)
+        contradictions = self._check_contradictions(text)
+        
+        # Base confidence from certainty
+        certainty_confidence = certainty['overall']
+        
+        # Penalty for contradictions
+        contradiction_penalty = contradictions['contradiction_count'] * 0.1
+        
+        # Bonus for verifiable claims
+        if claims:
+            verifiable_ratio = sum(1 for c in claims if c['verifiability'] == 'verifiable') / len(claims)
+            verifiability_bonus = verifiable_ratio * 0.2
+        else:
+            verifiability_bonus = 0
+        
+        truth_confidence = certainty_confidence - contradiction_penalty + verifiability_bonus
+        return max(0.0, min(1.0, truth_confidence))
+    
+    def _assess_truth(self, features: Dict[str, Any]) -> str:
+        """Assess overall truth status"""
+        truth_confidence = features['truth_confidence']
+        contradictions = features['contradiction_check']
+        verifiability = features['verification_status']
+        
+        if contradictions['found_contradictions']:
+            return 'contradictory'
+        elif truth_confidence >= 0.8 and verifiability in ['highly_verifiable', 'moderately_verifiable']:
+            return 'high_truth_confidence'
+        elif truth_confidence >= 0.6:
+            return 'moderate_truth_confidence'
+        elif truth_confidence >= 0.4:
+            return 'low_truth_confidence'
+        else:
+            return 'questionable_truth'
+
+# Export the main stratification engine
+__all__ = ['StratificationEngine']

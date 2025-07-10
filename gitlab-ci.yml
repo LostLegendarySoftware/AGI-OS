@@ -1,0 +1,436 @@
+# AGI OS Build System - GitLab CI Configuration
+# Based on MachineGod Ternary CPU Kernel with 150 AI Innovations
+# Supports multi-platform builds with UEFI boot and comprehensive testing
+
+stages:
+  - prepare
+  - build
+  - test
+  - package
+  - deploy
+
+variables:
+  BUILD_SYSTEM_VERSION: "1.0.0"
+  KERNEL_ARCH: "x86_64"
+  MEMORY_CONSTRAINT: "256MB"
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+
+# Default Docker image for builds
+default:
+  image: ubuntu:22.04
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq git curl wget
+
+# Build environment preparation
+prepare:dependencies:
+  stage: prepare
+  image: ubuntu:22.04
+  script:
+    - echo "=== Preparing AGI OS Build Environment ==="
+    - apt-get update
+    - apt-get install -y \
+        gcc \
+        binutils \
+        make \
+        zip \
+        qemu-system-x86 \
+        gnu-efi \
+        xorriso \
+        genisoimage \
+        ovmf \
+        build-essential
+    - echo "=== Verifying Dependencies ==="
+    - gcc --version
+    - ld --version
+    - make --version
+    - qemu-system-x86_64 --version
+    - ls -la /usr/include/efi/ || echo "GNU-EFI headers check"
+    - ls -la /usr/lib/crt0-efi-x86_64.o || echo "GNU-EFI runtime check"
+    - echo "Dependencies preparation completed"
+  artifacts:
+    reports:
+      junit: []
+    expire_in: 1 hour
+  cache:
+    key: dependencies-$CI_COMMIT_REF_SLUG
+    paths:
+      - /var/cache/apt/
+      - /usr/include/efi/
+  tags:
+    - docker
+
+# Kernel build job
+build:kernel:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - prepare:dependencies
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq \
+        gcc binutils make zip gnu-efi build-essential
+  script:
+    - echo "=== Building AGI OS Ternary CPU Kernel ==="
+    - cd project/build_system
+    - echo "Build system structure:"
+    - ls -la
+    - echo "Scripts directory:"
+    - ls -la scripts/
+    - echo "Extracted directory:"
+    - ls -la ../extracted/ || echo "Extracted directory not found"
+    
+    # Make build script executable
+    - chmod +x scripts/build.sh
+    
+    # Run kernel build
+    - echo "Starting kernel build..."
+    - ./scripts/build.sh --target kernel
+    
+    # Verify kernel build
+    - echo "=== Kernel Build Verification ==="
+    - ls -la ../final/
+    - if [ -f "../final/agi_os_kernel.efi" ]; then
+        file_size=$(stat -c%s "../final/agi_os_kernel.efi");
+        echo "Kernel EFI size: $file_size bytes";
+        if [ "$file_size" -gt 1000 ]; then
+          echo "✓ Kernel EFI integrity check passed";
+        else
+          echo "✗ Kernel EFI too small";
+          exit 1;
+        fi;
+      else
+        echo "✗ Kernel EFI not found";
+        exit 1;
+      fi
+  artifacts:
+    name: "agi-os-kernel-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - project/final/agi_os_kernel.efi
+      - project/final/agi_os_kernel.so
+      - project/build_system/logs/
+    expire_in: 1 week
+    reports:
+      junit: []
+  cache:
+    key: build-$CI_COMMIT_REF_SLUG
+    paths:
+      - project/build_system/temp/
+  tags:
+    - docker
+
+# ISO build job
+build:iso:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq \
+        gcc binutils make zip gnu-efi xorriso genisoimage
+  script:
+    - echo "=== Building AGI OS Bootable ISO ==="
+    - cd project/build_system
+    - chmod +x scripts/build.sh
+    - ./scripts/build.sh --target iso
+    - echo "=== ISO Build Verification ==="
+    - ls -la ../final/*.iso || echo "No ISO files found"
+  artifacts:
+    name: "agi-os-iso-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - project/final/*.iso
+    expire_in: 1 week
+  tags:
+    - docker
+
+# Windows package build job
+build:windows:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq zip
+  script:
+    - echo "=== Building AGI OS Windows Package ==="
+    - cd project/build_system
+    - chmod +x scripts/build.sh
+    - ./scripts/build.sh --target windows
+    - echo "=== Windows Package Verification ==="
+    - ls -la ../final/*windows*.zip || echo "No Windows packages found"
+  artifacts:
+    name: "agi-os-windows-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - project/final/*windows*.zip
+    expire_in: 1 week
+  tags:
+    - docker
+
+# Android APK build job
+build:android:
+  stage: build
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq zip
+  script:
+    - echo "=== Building AGI OS Android APK ==="
+    - cd project/build_system
+    - chmod +x scripts/build.sh
+    - ./scripts/build.sh --target android
+    - echo "=== Android APK Verification ==="
+    - ls -la ../final/*android*.apk || echo "No Android APK found"
+  artifacts:
+    name: "agi-os-android-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - project/final/*android*.apk
+    expire_in: 1 week
+  tags:
+    - docker
+
+# QEMU boot testing
+test:qemu:
+  stage: test
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq qemu-system-x86 ovmf
+  script:
+    - echo "=== QEMU Boot Testing ==="
+    - cd project/build_system
+    - if [ -f "../final/agi_os_kernel.efi" ]; then
+        echo "Testing kernel boot with QEMU...";
+        timeout 15s qemu-system-x86_64 \
+          -bios /usr/share/ovmf/OVMF.fd \
+          -drive format=raw,file=fat:rw:../final \
+          -nographic -serial stdio \
+          -m 256 \
+          > logs/qemu_test_gitlab.log 2>&1 || true;
+        echo "QEMU test completed";
+        cat logs/qemu_test_gitlab.log | head -20 || echo "No QEMU log found";
+      else
+        echo "Kernel EFI not found, skipping QEMU test";
+        exit 1;
+      fi
+  artifacts:
+    name: "qemu-test-logs-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - project/build_system/logs/qemu_test_gitlab.log
+    expire_in: 3 days
+    when: always
+  allow_failure: true
+  tags:
+    - docker
+
+# Build integrity testing
+test:integrity:
+  stage: test
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+    - build:iso
+    - build:windows
+    - build:android
+  script:
+    - echo "=== Build Integrity Testing ==="
+    - cd project/final
+    - echo "Checking build outputs:"
+    - ls -la
+    
+    # Test kernel integrity
+    - if [ -f "agi_os_kernel.efi" ]; then
+        file_size=$(stat -c%s "agi_os_kernel.efi");
+        echo "✓ Kernel EFI found ($file_size bytes)";
+        if [ "$file_size" -lt 1000 ]; then
+          echo "✗ Kernel EFI too small";
+          exit 1;
+        fi;
+      else
+        echo "✗ Kernel EFI missing";
+        exit 1;
+      fi
+    
+    # Test other artifacts
+    - [ -f "agi_os_kernel.so" ] && echo "✓ Kernel SO found" || echo "✗ Kernel SO missing"
+    - ls *.iso >/dev/null 2>&1 && echo "✓ ISO image found" || echo "- ISO image not built"
+    - ls *windows*.zip >/dev/null 2>&1 && echo "✓ Windows package found" || echo "- Windows package not built"
+    - ls *android*.apk >/dev/null 2>&1 && echo "✓ Android APK found" || echo "- Android APK not built"
+    
+    - echo "Build integrity test completed"
+  tags:
+    - docker
+
+# Security scanning
+test:security:
+  stage: test
+  image: ubuntu:22.04
+  script:
+    - echo "=== Security Scanning ==="
+    - cd project/build_system
+    
+    # Check for hardcoded secrets
+    - echo "Scanning for potential secrets..."
+    - grep -r "password\|secret\|key" . || echo "No obvious secrets found"
+    
+    # Check file permissions
+    - echo "Checking file permissions..."
+    - find . -type f -perm /o+w -exec echo "World-writable file: {}" \; || echo "No world-writable files"
+    
+    # Verify script integrity
+    - echo "Verifying script integrity..."
+    - [ -f "scripts/build.sh" ] && echo "✓ Build script found" || (echo "✗ Build script missing"; exit 1)
+    - [ -x "scripts/build.sh" ] && echo "✓ Build script executable" || echo "✗ Build script not executable"
+    
+    - echo "Security scan completed"
+  allow_failure: true
+  tags:
+    - docker
+
+# Package creation
+package:final:
+  stage: package
+  image: ubuntu:22.04
+  dependencies:
+    - build:kernel
+    - build:iso
+    - build:windows
+    - build:android
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq zip
+  script:
+    - echo "=== Creating Final AGI OS Package ==="
+    - mkdir -p final_package/
+    
+    # Copy all build artifacts
+    - cp -r project/final/* final_package/ 2>/dev/null || echo "No final artifacts to copy"
+    
+    # Copy build system components
+    - cp -r project/build_system/scripts final_package/build_scripts
+    - cp -r project/build_system/ci final_package/ci_configs
+    - cp -r project/build_system/configs final_package/boot_configs
+    - cp -r project/build_system/docs final_package/documentation
+    - cp -r project/build_system/templates final_package/package_templates
+    
+    # Create build information
+    - |
+      cat > final_package/BUILD_INFO.txt << EOF
+      AGI OS Build System Package
+      ===========================
+      
+      Build Date: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+      Build System Version: $BUILD_SYSTEM_VERSION
+      Kernel Architecture: Ternary CPU with UEFI Boot
+      AI Innovations: 150 integrated innovations from MachineGod framework
+      Target Platforms: x86_64 UEFI, Windows, Android
+      Memory Constraint: $MEMORY_CONSTRAINT
+      
+      GitLab CI Build:
+      - Pipeline ID: $CI_PIPELINE_ID
+      - Job ID: $CI_JOB_ID
+      - Commit: $CI_COMMIT_SHA
+      - Branch: $CI_COMMIT_REF_NAME
+      - Runner: $CI_RUNNER_DESCRIPTION
+      
+      Package Contents:
+      - agi_os_kernel.efi: Main UEFI bootable kernel
+      - agi_os_kernel.so: Shared object version
+      - *.iso: Bootable ISO images
+      - *windows*.zip: Windows deployment packages
+      - *android*.apk: Android application packages
+      - build_scripts/: Build automation scripts
+      - ci_configs/: CI/CD pipeline configurations
+      - boot_configs/: UEFI boot configurations
+      - documentation/: Technical documentation
+      - package_templates/: Package generation templates
+      
+      Build System Features:
+      - Automated kernel compilation with ternary CPU support
+      - Multi-platform package generation
+      - UEFI boot configuration
+      - CI/CD pipeline integration
+      - Comprehensive testing and verification
+      - GitLab CI/CD automation
+      
+      For deployment instructions, see documentation/README.md
+      EOF
+    
+    # Create final ZIP package
+    - zip -r AGI_OS_build_system.zip final_package/
+    
+    - echo "=== Package Contents ==="
+    - ls -la final_package/
+    - echo "=== Final Package ==="
+    - ls -la AGI_OS_build_system.zip
+  artifacts:
+    name: "AGI_OS_build_system-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - AGI_OS_build_system.zip
+      - final_package/
+    expire_in: 30 days
+  tags:
+    - docker
+
+# Deployment to staging (manual)
+deploy:staging:
+  stage: deploy
+  image: ubuntu:22.04
+  dependencies:
+    - package:final
+  script:
+    - echo "=== Deploying to Staging Environment ==="
+    - echo "Package: AGI_OS_build_system.zip"
+    - ls -la AGI_OS_build_system.zip
+    - echo "Staging deployment would happen here"
+    - echo "Package ready for deployment"
+  environment:
+    name: staging
+    url: https://staging.machinegod.live
+  when: manual
+  only:
+    - develop
+    - main
+  tags:
+    - docker
+
+# Production deployment (manual, tags only)
+deploy:production:
+  stage: deploy
+  image: ubuntu:22.04
+  dependencies:
+    - package:final
+  script:
+    - echo "=== Deploying to Production Environment ==="
+    - echo "Package: AGI_OS_build_system.zip"
+    - ls -la AGI_OS_build_system.zip
+    - echo "Production deployment would happen here"
+    - echo "AGI OS build system deployed to production"
+  environment:
+    name: production
+    url: https://machinegod.live
+  when: manual
+  only:
+    - tags
+  tags:
+    - docker
+
+# Cleanup job
+cleanup:
+  stage: deploy
+  image: ubuntu:22.04
+  script:
+    - echo "=== Cleanup ==="
+    - echo "Cleaning up temporary files..."
+    - rm -rf project/build_system/temp/* || echo "No temp files to clean"
+    - echo "Cleanup completed"
+  when: always
+  allow_failure: true
+  tags:
+    - docker

@@ -1,0 +1,190 @@
+// src/components/tabs/TTS.tsx - Text-to-Speech with Left Positioning
+import React, { useState, useRef, useEffect } from 'react'
+import { TTSEngine } from '../../core/TTSEngine'
+
+interface TTSProps {
+  position?: 'left' | 'integrated'
+  uploadedFiles?: ProcessedFile[]
+}
+
+export const TTS: React.FC<TTSProps> = ({ position = 'integrated', uploadedFiles }) => {
+  const [text, setText] = useState('')
+  const [voice, setVoice] = useState('sarah')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  const generateSpeech = async () => {
+    if (!text.trim()) return
+
+    setIsGenerating(true)
+    try {
+      const audioBlob = await TTSEngine.synthesize(text, voice)
+      const url = URL.createObjectURL(audioBlob)
+      setAudioUrl(url)
+    } catch (error) {
+      console.error('TTS generation failed:', error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const togglePlayback = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause()
+      } else {
+        audioRef.current.play()
+      }
+      setIsPlaying(!isPlaying)
+    }
+  }
+
+  if (position === 'left') {
+    return (
+      <div className="tts-sidebar">
+        <div className="tts-controls-compact">
+          <button 
+            onClick={generateSpeech}
+            disabled={isGenerating || !text.trim()}
+            className="tts-speak-btn"
+            title="Convert text to speech"
+          >
+            {isGenerating ? '🔄' : '🔊'}
+          </button>
+          
+          {audioUrl && (
+            <button 
+              onClick={togglePlayback}
+              className="tts-play-btn"
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? '⏸️' : '▶️'}
+            </button>
+          )}
+          
+          <select 
+            value={voice}
+            onChange={(e) => setVoice(e.target.value)}
+            className="voice-select-compact"
+            title="Select voice"
+          >
+            <option value="sarah">Sarah</option>
+            <option value="george">George</option>
+            <option value="river">River</option>
+            <option value="matilda">Matilda</option>
+          </select>
+        </div>
+        
+        {audioUrl && (
+          <audio 
+            ref={audioRef}
+            src={audioUrl}
+            onEnded={() => setIsPlaying(false)}
+            style={{ display: 'none' }}
+          />
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="tts-tab">
+      <h3>🔊 Text-to-Speech & Audio Processing</h3>
+      
+      <div className="tts-interface">
+        <div className="tts-input">
+          <h4>Ternary Audio Synthesis Engine</h4>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Enter text to convert to speech..."
+            className="tts-textarea"
+            rows={8}
+          />
+          
+          <div className="tts-controls">
+            <div className="voice-selection">
+              <label>Voice:</label>
+              <select value={voice} onChange={(e) => setVoice(e.target.value)}>
+                <option value="sarah">Sarah (Female)</option>
+                <option value="george">George (Male)</option>
+                <option value="river">River (Neutral)</option>
+                <option value="matilda">Matilda (Young)</option>
+              </select>
+            </div>
+            
+            <button 
+              onClick={generateSpeech}
+              disabled={isGenerating || !text.trim()}
+              className="generate-speech-btn"
+            >
+              {isGenerating ? '🔄 Generating...' : '🔊 Generate Speech'}
+            </button>
+          </div>
+        </div>
+
+        {audioUrl && (
+          <div className="audio-player">
+            <h4>Generated Audio</h4>
+            <div className="player-controls">
+              <button onClick={togglePlayback} className="play-pause-btn">
+                {isPlaying ? '⏸️ Pause' : '▶️ Play'}
+              </button>
+              
+              <audio 
+                ref={audioRef}
+                src={audioUrl}
+                onEnded={() => setIsPlaying(false)}
+                controls
+                className="audio-element"
+              />
+              
+              <a 
+                href={audioUrl} 
+                download="machinegod-speech.wav"
+                className="download-btn"
+              >
+                💾 Download
+              </a>
+            </div>
+          </div>
+        )}
+
+        {uploadedFiles?.filter(f => f.type.category === 'audio').length > 0 && (
+          <div className="uploaded-audio">
+            <h4>Uploaded Audio Analysis</h4>
+            {uploadedFiles
+              .filter(f => f.type.category === 'audio')
+              .map((file, index) => (
+                <div key={index} className="audio-analysis">
+                  <div className="file-info">
+                    <span className="file-name">{file.originalName}</span>
+                    <span className="analysis-confidence">
+                      Confidence: {file.analysis.confidence}%
+                    </span>
+                  </div>
+                  
+                  <div className="audio-features">
+                    <div className="feature">
+                      <span>Duration:</span>
+                      <span>{file.analysis.content.duration}s</span>
+                    </div>
+                    <div className="feature">
+                      <span>Sample Rate:</span>
+                      <span>{file.analysis.content.sampleRate}Hz</span>
+                    </div>
+                    <div className="feature">
+                      <span>Emotions Detected:</span>
+                      <span>{file.analysis.content.emotions?.join(', ')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,303 @@
+{
+  "wake_passports": {},
+  "metadata": {
+    "version": "1.0.0",
+    "specification": "$wake_passport.json",
+    "created_at": "2025-07-04T23:59:47.000Z",
+    "description": "Wake Passport System for Extended MachineGod AI System - Secure Blockchain Credential Management",
+    "total_users": 0,
+    "schema_version": "1.0.0",
+    "encryption_enabled": true,
+    "blockchain_integration": true,
+    "supported_platforms": [
+      "ethereum",
+      "bitcoin",
+      "lightweight",
+      "local_chain"
+    ]
+  },
+  "template_structure": {
+    "wake_passport_template": {
+      "user_id": "string - Unique user identifier",
+      "identity_hash": "string - SHA256 hash of user identity data",
+      "credentials": [
+        {
+          "id": "string - Unique credential identifier (UUID)",
+          "type": "enum - user_identity|system_access|api_token|blockchain_wallet|biometric_data|role_permission",
+          "user_id": "string - Associated user identifier",
+          "data": {
+            "description": "object - Credential-specific data structure",
+            "examples": {
+              "user_identity": {
+                "name": "string",
+                "email": "string",
+                "public_key": "string - RSA public key PEM format",
+                "identity_verification": "object"
+              },
+              "system_access": {
+                "access_level": "string",
+                "allowed_modules": "array",
+                "restrictions": "object"
+              },
+              "api_token": {
+                "token_hash": "string",
+                "scope": "array",
+                "rate_limits": "object"
+              },
+              "blockchain_wallet": {
+                "wallet_address": "string",
+                "public_key": "string",
+                "supported_currencies": "array"
+              },
+              "biometric_data": {
+                "biometric_hash": "string - Hashed biometric template",
+                "biometric_type": "string - fingerprint|face|voice|iris",
+                "verification_threshold": "number"
+              },
+              "role_permission": {
+                "role_name": "string",
+                "permissions": "array",
+                "hierarchy_level": "number"
+              }
+            }
+          },
+          "permissions": [
+            "string - Array of permission strings"
+          ],
+          "created_at": "string - ISO 8601 datetime",
+          "expires_at": "string|null - ISO 8601 datetime or null for permanent",
+          "blockchain_hash": "string|null - Blockchain transaction hash",
+          "verification_status": "enum - pending|verified|revoked|expired",
+          "encryption_key_id": "string|null - Reference to encryption key"
+        }
+      ],
+      "permissions": {
+        "description": "object - Hierarchical permission structure",
+        "basic_access": "boolean - Basic system access",
+        "advanced_features": "boolean - Advanced feature access",
+        "admin_privileges": "boolean - Administrative privileges",
+        "blockchain_operations": "boolean - Blockchain transaction permissions",
+        "credential_management": "boolean - Manage other credentials",
+        "system_configuration": "boolean - Modify system settings",
+        "plugin_management": "boolean - Install/manage plugins",
+        "user_management": "boolean - Manage other users",
+        "audit_access": "boolean - Access audit logs",
+        "emergency_override": "boolean - Emergency system override",
+        "custom_permissions": {
+          "description": "object - Custom permission definitions",
+          "example": {
+            "module_specific_access": "boolean",
+            "feature_flags": "object",
+            "resource_quotas": "object"
+          }
+        }
+      },
+      "blockchain_addresses": {
+        "description": "object - Blockchain wallet addresses by platform",
+        "ethereum": "string - Ethereum wallet address",
+        "bitcoin": "string - Bitcoin wallet address",
+        "local_chain": "string - Local blockchain address",
+        "custom_chains": "object - Additional blockchain addresses"
+      },
+      "transaction_history": [
+        {
+          "transaction_id": "string - Unique transaction identifier",
+          "type": "enum - credential_storage|credential_verification|permission_grant|permission_revoke",
+          "timestamp": "number - Unix timestamp",
+          "block_hash": "string - Blockchain block hash",
+          "details": {
+            "description": "object - Transaction-specific details",
+            "credential_id": "string - Related credential ID",
+            "action_performed": "string - Description of action",
+            "verification_result": "boolean - Success/failure status"
+          }
+        }
+      ],
+      "created_at": "string - ISO 8601 datetime of passport creation",
+      "last_updated": "string - ISO 8601 datetime of last modification",
+      "authentication_level": "enum - 1=BASIC|2=ENHANCED|3=BIOMETRIC|4=MULTI_FACTOR|5=QUANTUM_SECURE",
+      "biometric_hash": "string|null - Hashed biometric template for authentication",
+      "security_settings": {
+        "description": "object - Security configuration for the passport",
+        "multi_factor_enabled": "boolean",
+        "biometric_enabled": "boolean",
+        "session_timeout": "number - Session timeout in seconds",
+        "max_concurrent_sessions": "number",
+        "password_policy": {
+          "min_length": "number",
+          "require_special_chars": "boolean",
+          "require_numbers": "boolean",
+          "require_uppercase": "boolean",
+          "expiration_days": "number"
+        },
+        "failed_attempt_lockout": {
+          "enabled": "boolean",
+          "max_attempts": "number",
+          "lockout_duration": "number - Lockout duration in seconds"
+        }
+      },
+      "audit_trail": [
+        {
+          "timestamp": "string - ISO 8601 datetime",
+          "action": "string - Action performed",
+          "user_agent": "string - Client information",
+          "ip_address": "string - Source IP address",
+          "result": "enum - success|failure|warning",
+          "details": "object - Additional audit information"
+        }
+      ]
+    }
+  },
+  "system_configuration": {
+    "credential_types": {
+      "user_identity": {
+        "required_fields": ["name", "email", "public_key"],
+        "optional_fields": ["phone", "address", "emergency_contact"],
+        "verification_required": true,
+        "blockchain_storage": true
+      },
+      "system_access": {
+        "required_fields": ["access_level", "allowed_modules"],
+        "optional_fields": ["restrictions", "time_limits"],
+        "verification_required": true,
+        "blockchain_storage": true
+      },
+      "api_token": {
+        "required_fields": ["token_hash", "scope"],
+        "optional_fields": ["rate_limits", "expiration"],
+        "verification_required": false,
+        "blockchain_storage": false
+      },
+      "blockchain_wallet": {
+        "required_fields": ["wallet_address", "public_key"],
+        "optional_fields": ["supported_currencies", "backup_keys"],
+        "verification_required": true,
+        "blockchain_storage": true
+      },
+      "biometric_data": {
+        "required_fields": ["biometric_hash", "biometric_type"],
+        "optional_fields": ["verification_threshold", "backup_methods"],
+        "verification_required": true,
+        "blockchain_storage": false
+      },
+      "role_permission": {
+        "required_fields": ["role_name", "permissions"],
+        "optional_fields": ["hierarchy_level", "delegation_rights"],
+        "verification_required": true,
+        "blockchain_storage": true
+      }
+    },
+    "permission_hierarchy": {
+      "level_0_guest": {
+        "permissions": ["basic_access"],
+        "description": "Guest access with minimal permissions"
+      },
+      "level_1_user": {
+        "permissions": ["basic_access", "advanced_features"],
+        "description": "Standard user with advanced feature access"
+      },
+      "level_2_power_user": {
+        "permissions": ["basic_access", "advanced_features", "plugin_management"],
+        "description": "Power user with plugin management capabilities"
+      },
+      "level_3_admin": {
+        "permissions": ["basic_access", "advanced_features", "plugin_management", "user_management", "system_configuration"],
+        "description": "Administrator with user and system management"
+      },
+      "level_4_super_admin": {
+        "permissions": ["basic_access", "advanced_features", "plugin_management", "user_management", "system_configuration", "blockchain_operations", "credential_management", "audit_access"],
+        "description": "Super administrator with full system access"
+      },
+      "level_5_system": {
+        "permissions": ["basic_access", "advanced_features", "plugin_management", "user_management", "system_configuration", "blockchain_operations", "credential_management", "audit_access", "emergency_override"],
+        "description": "System-level access with emergency override capabilities"
+      }
+    },
+    "blockchain_configuration": {
+      "default_platform": "local_chain",
+      "supported_platforms": {
+        "ethereum": {
+          "enabled": true,
+          "network": "mainnet",
+          "gas_limit": 21000,
+          "confirmation_blocks": 12
+        },
+        "bitcoin": {
+          "enabled": false,
+          "network": "mainnet",
+          "confirmation_blocks": 6
+        },
+        "local_chain": {
+          "enabled": true,
+          "difficulty": 4,
+          "mining_reward": 10,
+          "block_time": 10
+        }
+      },
+      "credential_storage_settings": {
+        "store_full_credentials": false,
+        "store_credential_hashes": true,
+        "verification_required": true,
+        "immutable_records": true
+      }
+    },
+    "security_policies": {
+      "encryption": {
+        "algorithm": "AES-256-GCM",
+        "key_derivation": "PBKDF2",
+        "iterations": 100000,
+        "salt_length": 32
+      },
+      "digital_signatures": {
+        "algorithm": "RSA-PSS",
+        "key_size": 2048,
+        "hash_function": "SHA-256"
+      },
+      "session_management": {
+        "default_timeout": 86400,
+        "max_concurrent_sessions": 5,
+        "session_token_length": 32
+      },
+      "audit_requirements": {
+        "log_all_access": true,
+        "log_credential_changes": true,
+        "log_permission_changes": true,
+        "retention_period": 2592000
+      }
+    }
+  },
+  "integration_hooks": {
+    "event_types": [
+      "credential_created",
+      "credential_verified",
+      "credential_revoked",
+      "credential_expired",
+      "authentication_success",
+      "authentication_failure",
+      "permission_granted",
+      "permission_denied",
+      "blockchain_transaction",
+      "security_violation"
+    ],
+    "plugin_interfaces": {
+      "authentication_providers": [
+        "password_auth",
+        "biometric_auth",
+        "multi_factor_auth",
+        "blockchain_auth"
+      ],
+      "credential_validators": [
+        "identity_validator",
+        "permission_validator",
+        "blockchain_validator",
+        "biometric_validator"
+      ],
+      "notification_channels": [
+        "email_notifications",
+        "sms_notifications",
+        "push_notifications",
+        "audit_log_notifications"
+      ]
+    }
+  }
+}

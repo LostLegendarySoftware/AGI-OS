@@ -1,0 +1,2332 @@
+<!DOCTYPE html><html lang="en"><head><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MachineGod: Advanced Neural Interface</title>
+    
+    <!-- Matrix Hacker Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&amp;family=Share+Tech+Mono&amp;family=Audiowide&amp;family=Creepster&amp;display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Purple/Red/Pink/Cyan Color Palette */
+            --matrix-purple: #9D4EDD;
+            --deep-purple: #6A0572;
+            --neon-red: #FF006E;
+            --hot-pink: #FB8500;
+            --electric-cyan: #8ECAE6;
+            --bright-cyan: #219EBC;
+            --void-black: #000000;
+            --dark-purple: #240046;
+            --deep-red: #3C096C;
+            --pink-glow: #FF69B4;
+            
+            /* 3D Properties */
+            --perspective: 1500px;
+            --hud-depth: translateZ(200px);
+            --particle-depth-1: translateZ(100px);
+            --particle-depth-2: translateZ(300px);
+            --particle-depth-3: translateZ(500px);
+            
+            /* Fonts */
+            --font-matrix: 'Share Tech Mono', monospace;
+            --font-cyber: 'Orbitron', monospace;
+            --font-title: 'Creepster', cursive;
+            --font-ui: 'Audiowide', cursive;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-matrix);
+            background: var(--void-black);
+            color: var(--matrix-purple);
+            overflow: hidden;
+            perspective: var(--perspective);
+            transform-style: preserve-3d;
+            cursor: crosshair;
+            height: 100vh;
+        }
+
+        /* 3D Polygonal Matrix Space */
+        .matrix-space {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            animation: space-rotation 120s linear infinite;
+            z-index: -20;
+        }
+
+        @keyframes space-rotation {
+            0% { transform: rotateY(0deg) rotateX(0deg) rotateZ(0deg); }
+            33% { transform: rotateY(120deg) rotateX(5deg) rotateZ(2deg); }
+            66% { transform: rotateY(240deg) rotateX(-3deg) rotateZ(-1deg); }
+            100% { transform: rotateY(360deg) rotateX(0deg) rotateZ(0deg); }
+        }
+
+        /* Polygonal Grid Background */
+        .polygon-grid {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background-image: 
+                linear-gradient(rgba(157, 78, 221, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(157, 78, 221, 0.1) 1px, transparent 1px),
+                linear-gradient(45deg, rgba(255, 0, 110, 0.1) 1px, transparent 1px),
+                linear-gradient(-45deg, rgba(142, 202, 230, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px, 50px 50px, 100px 100px, 100px 100px;
+            transform: translateZ(-800px);
+            animation: grid-flow 20s linear infinite;
+        }
+
+        @keyframes grid-flow {
+            0% { transform: translateZ(-800px) translate(0, 0); }
+            100% { transform: translateZ(-800px) translate(50px, 50px); }
+        }
+
+        /* 3D Polygon Shapes */
+        .polygon-shape {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, 
+                rgba(157, 78, 221, 0.1), 
+                rgba(255, 0, 110, 0.1), 
+                rgba(142, 202, 230, 0.1));
+            transform-style: preserve-3d;
+            animation: polygon-drift 15s linear infinite;
+        }
+
+        .polygon-shape:nth-child(1) {
+            top: 10%;
+            left: 20%;
+            transform: translateZ(-300px) rotateX(45deg) rotateY(0deg);
+            animation-delay: 0s;
+        }
+
+        .polygon-shape:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            transform: translateZ(-500px) rotateX(0deg) rotateY(60deg);
+            animation-delay: -5s;
+        }
+
+        .polygon-shape:nth-child(3) {
+            top: 30%;
+            left: 70%;
+            transform: translateZ(-200px) rotateX(30deg) rotateY(120deg);
+            animation-delay: -10s;
+        }
+
+        @keyframes polygon-drift {
+            0% { transform: translateZ(-300px) rotateX(45deg) rotateY(0deg); opacity: 0.3; }
+            50% { transform: translateZ(100px) rotateX(45deg) rotateY(180deg); opacity: 0.7; }
+            100% { transform: translateZ(-300px) rotateX(45deg) rotateY(360deg); opacity: 0.3; }
+        }
+
+        /* Matrix Code Rain - Enhanced */
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -10;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -100px;
+            font-family: var(--font-matrix);
+            font-size: 18px;
+            line-height: 22px;
+            text-shadow: 0 0 8px currentColor;
+            animation: matrix-fall-column 8s linear infinite;
+            opacity: 0.9;
+        }
+
+        .matrix-symbol {
+            display: block;
+            margin: 2px 0;
+            transition: color 0.1s ease;
+        }
+
+        .matrix-symbol.bright {
+            color: #FFFFFF !important;
+            text-shadow: 0 0 15px currentColor !important;
+            font-weight: bold;
+        }
+
+        .matrix-symbol.purple { color: var(--matrix-purple); }
+        .matrix-symbol.red { color: var(--neon-red); }
+        .matrix-symbol.pink { color: var(--pink-glow); }
+        .matrix-symbol.cyan { color: var(--electric-cyan); }
+
+        @keyframes matrix-fall-column {
+            0% { 
+                transform: translateY(-100vh);
+                opacity: 0;
+            }
+            5% { opacity: 0.9; }
+            95% { opacity: 0.9; }
+            100% { 
+                transform: translateY(100vh);
+                opacity: 0;
+            }
+        }
+
+        /* Floating HUD Container */
+        .matrix-hud {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 1400px;
+            height: 800px;
+            transform: translate(-50%, -50%) var(--hud-depth);
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid var(--matrix-purple);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 
+                0 0 50px rgba(157, 78, 221, 0.4),
+                inset 0 0 50px rgba(0, 0, 0, 0.6),
+                0 0 100px rgba(255, 0, 110, 0.3);
+            transform-style: preserve-3d;
+            animation: hud-float 8s ease-in-out infinite;
+            z-index: 100;
+        }
+
+        @keyframes hud-float {
+            0%, 100% { 
+                transform: translate(-50%, -50%) var(--hud-depth) 
+                          rotateX(0deg) rotateY(0deg) rotateZ(0deg)
+                          translateY(0px);
+            }
+            25% { 
+                transform: translate(-50%, -50%) var(--hud-depth) 
+                          rotateX(2deg) rotateY(-1deg) rotateZ(0.5deg)
+                          translateY(-10px);
+            }
+            50% { 
+                transform: translate(-50%, -50%) var(--hud-depth) 
+                          rotateX(0deg) rotateY(2deg) rotateZ(-0.5deg)
+                          translateY(5px);
+            }
+            75% { 
+                transform: translate(-50%, -50%) var(--hud-depth) 
+                          rotateX(-1deg) rotateY(0deg) rotateZ(0.3deg)
+                          translateY(-5px);
+            }
+        }
+
+        /* Melting MachineGod Header */
+        .melting-header {
+            height: 100px;
+            background: linear-gradient(135deg, 
+                rgba(157, 78, 221, 0.15) 0%,
+                rgba(255, 0, 110, 0.15) 50%,
+                rgba(142, 202, 230, 0.15) 100%);
+            border-bottom: 2px solid var(--matrix-purple);
+            border-radius: 20px 20px 0 0;
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .melting-machinegod {
+            font-family: var(--font-title);
+            font-size: 3rem;
+            background: linear-gradient(45deg, 
+                var(--matrix-purple) 0%,
+                var(--neon-red) 25%,
+                var(--pink-glow) 50%,
+                var(--electric-cyan) 75%,
+                var(--matrix-purple) 100%);
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: 
+                melting-colors 4s ease-in-out infinite,
+                text-melt 6s ease-in-out infinite,
+                text-drip 8s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px var(--matrix-purple));
+            position: relative;
+        }
+
+        @keyframes melting-colors {
+            0%, 100% { background-position: 0% 50%; }
+            25% { background-position: 100% 25%; }
+            50% { background-position: 200% 50%; }
+            75% { background-position: 300% 75%; }
+        }
+
+        @keyframes text-melt {
+            0%, 100% { 
+                transform: scaleY(1) skewX(0deg) scaleX(1);
+                filter: blur(0px) drop-shadow(0 0 20px var(--matrix-purple));
+            }
+            25% { 
+                transform: scaleY(1.1) skewX(2deg) scaleX(0.98);
+                filter: blur(1px) drop-shadow(0 5px 25px var(--neon-red));
+            }
+            50% { 
+                transform: scaleY(0.9) skewX(-1deg) scaleX(1.02);
+                filter: blur(2px) drop-shadow(0 -3px 30px var(--electric-cyan));
+            }
+            75% { 
+                transform: scaleY(1.05) skewX(1deg) scaleX(0.99);
+                filter: blur(1px) drop-shadow(0 3px 25px var(--pink-glow));
+            }
+        }
+
+        @keyframes text-drip {
+            0%, 90%, 100% { 
+                text-shadow: 
+                    0 0 20px var(--matrix-purple),
+                    0 0 40px var(--neon-red);
+            }
+            95% { 
+                text-shadow: 
+                    0 5px 30px var(--matrix-purple),
+                    0 10px 50px var(--neon-red),
+                    0 15px 70px var(--electric-cyan);
+            }
+        }
+
+        /* HUD Layout Grid */
+        .hud-grid {
+            height: calc(100% - 100px);
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            grid-template-rows: 1fr 120px;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Neural Matrix Panel (Left) */
+        .neural-matrix-panel {
+            background: rgba(36, 0, 70, 0.8);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transform: var(--particle-depth-1);
+        }
+
+        .neural-matrix-title {
+            font-family: var(--font-ui);
+            font-size: 1.2rem;
+            color: var(--matrix-purple);
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px currentColor;
+            animation: title-glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes title-glow {
+            0% { text-shadow: 0 0 10px var(--matrix-purple); }
+            100% { text-shadow: 0 0 20px var(--matrix-purple), 0 0 30px var(--electric-cyan); }
+        }
+
+        /* Module Tabs - Updated */
+        .module-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .module-tab {
+            background: rgba(255, 0, 110, 0.2);
+            border: 1px solid var(--neon-red);
+            border-radius: 8px;
+            padding: 10px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: var(--font-cyber);
+            color: var(--neon-red);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .module-tab.active {
+            background: linear-gradient(45deg, var(--neon-red), var(--electric-cyan));
+            color: var(--void-black);
+            box-shadow: 0 0 20px var(--neon-red);
+            transform: translateZ(10px);
+        }
+
+        .module-tab:hover {
+            transform: scale(1.05) translateZ(5px);
+            border-color: var(--electric-cyan);
+        }
+
+        .module-content {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--neon-red);
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Chat Interface (Center) with Neural Monitoring */
+        .chat-interface {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neural-monitoring {
+            height: 120px;
+            background: rgba(36, 0, 70, 0.3);
+            border-bottom: 1px solid var(--matrix-purple);
+            display: grid;
+            grid-template-columns: 1fr 200px 1fr;
+            gap: 10px;
+            padding: 15px;
+        }
+
+        .neural-monitor {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .monitor-title {
+            color: var(--electric-cyan);
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .monitor-value {
+            color: var(--matrix-purple);
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .monitor-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(157, 78, 221, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .monitor-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--matrix-purple), var(--electric-cyan));
+            border-radius: 2px;
+            animation: monitor-pulse 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes monitor-pulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .assistant-rendering {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .assistant-head {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at center,
+                rgba(157, 78, 221, 0.3) 0%,
+                rgba(255, 0, 110, 0.2) 50%,
+                rgba(0, 0, 0, 0.8) 100%);
+            border: 2px solid var(--matrix-purple);
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            animation: head-pulse 3s ease-in-out infinite alternate;
+        }
+
+        .assistant-head::before {
+            content: '🤖';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            animation: head-rotation 10s linear infinite;
+            filter: drop-shadow(0 0 10px var(--matrix-purple));
+        }
+
+        @keyframes head-rotation {
+            0% { transform: translate(-50%, -50%) rotateY(0deg); }
+            100% { transform: translate(-50%, -50%) rotateY(360deg); }
+        }
+
+        @keyframes head-pulse {
+            0% { 
+                border-color: var(--matrix-purple);
+                box-shadow: 0 0 20px var(--matrix-purple);
+            }
+            100% { 
+                border-color: var(--electric-cyan);
+                box-shadow: 0 0 30px var(--electric-cyan);
+            }
+        }
+
+        .rendering-status {
+            color: var(--electric-cyan);
+            font-size: 0.7rem;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .chat-output {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-family: var(--font-matrix);
+            background: rgba(36, 0, 70, 0.2);
+        }
+
+        .chat-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-output::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .chat-output::-webkit-scrollbar-thumb {
+            background: var(--matrix-purple);
+            border-radius: 4px;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid var(--matrix-purple);
+            background: rgba(157, 78, 221, 0.1);
+            border-radius: 5px;
+            animation: message-appear 0.5s ease-out;
+        }
+
+        @keyframes message-appear {
+            0% { 
+                opacity: 0; 
+                transform: translateX(-20px) translateZ(-50px); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translateX(0) translateZ(0); 
+            }
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--matrix-purple);
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(36, 0, 70, 0.8);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 10px;
+            color: var(--matrix-purple);
+            font-family: var(--font-matrix);
+            padding: 15px;
+            font-size: 16px;
+            text-shadow: 0 0 5px currentColor;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--electric-cyan);
+            box-shadow: 0 0 20px rgba(142, 202, 230, 0.3);
+        }
+
+        .send-button {
+            background: linear-gradient(45deg, var(--matrix-purple), var(--electric-cyan));
+            border: none;
+            border-radius: 10px;
+            color: var(--void-black);
+            font-family: var(--font-cyber);
+            font-weight: bold;
+            padding: 15px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05) translateZ(10px);
+            box-shadow: 0 0 30px var(--matrix-purple);
+        }
+
+        /* Neural Systems Panel (Right) */
+        .neural-systems-panel {
+            background: rgba(60, 9, 108, 0.8);
+            border: 1px solid var(--electric-cyan);
+            border-radius: 15px;
+            padding: 20px;
+            transform: var(--particle-depth-1);
+        }
+
+        .systems-title {
+            font-family: var(--font-ui);
+            font-size: 1.2rem;
+            color: var(--electric-cyan);
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* Neural Network Visualization */
+        .neural-network-viz {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--electric-cyan);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .neural-node {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .neural-node:hover circle {
+            stroke-width: 4;
+            filter: drop-shadow(0 0 15px currentColor);
+        }
+
+        .neural-hub circle {
+            animation: hub-pulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes hub-pulse {
+            0% { 
+                stroke-width: 3;
+                filter: drop-shadow(0 0 10px #FFFFFF);
+            }
+            100% { 
+                stroke-width: 5;
+                filter: drop-shadow(0 0 25px #FFFFFF);
+            }
+        }
+
+        .connection {
+            animation: connection-flow 6s ease-in-out infinite alternate;
+        }
+
+        @keyframes connection-flow {
+            0% { opacity: 0.6; stroke-width: 2; }
+            100% { opacity: 1; stroke-width: 3; }
+        }
+
+        .cross-connection, .diagonal-connection {
+            animation: cross-flow 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes cross-flow {
+            0% { opacity: 0.2; }
+            100% { opacity: 0.5; }
+        }
+
+        /* System Status Grid */
+        .system-status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .status-item {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .status-item.ariel { border-color: var(--matrix-purple); }
+        .status-item.warp { border-color: var(--neon-red); }
+        .status-item.helix { border-color: var(--hot-pink); }
+        .status-item.meta { border-color: var(--electric-cyan); }
+
+        .status-label {
+            color: var(--electric-cyan);
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            color: var(--matrix-purple);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .status-indicator {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .status-indicator.stable {
+            background: linear-gradient(90deg, var(--matrix-purple), var(--electric-cyan));
+            animation: stable-pulse 3s ease-in-out infinite alternate;
+        }
+
+        .status-indicator.increasing {
+            background: linear-gradient(90deg, var(--neon-red), var(--hot-pink));
+            animation: increasing-pulse 2s ease-in-out infinite;
+        }
+
+        .status-indicator.fluctuating {
+            background: linear-gradient(90deg, var(--electric-cyan), var(--matrix-purple), var(--neon-red));
+            background-size: 300% 100%;
+            animation: fluctuating-pulse 4s linear infinite;
+        }
+
+        @keyframes stable-pulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes increasing-pulse {
+            0% { opacity: 0.6; transform: scaleX(0.8); }
+            100% { opacity: 1; transform: scaleX(1); }
+        }
+
+        @keyframes fluctuating-pulse {
+            0% { background-position: 0% 50%; opacity: 0.7; }
+            50% { background-position: 100% 50%; opacity: 1; }
+            100% { background-position: 200% 50%; opacity: 0.7; }
+        }
+
+        /* Bottom Control Panel - Updated Functions */
+        .control-panel {
+            grid-column: 1 / -1;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .feature-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .feature-btn {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, 
+                rgba(157, 78, 221, 0.3), 
+                rgba(255, 0, 110, 0.3));
+            border: 2px solid var(--matrix-purple);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            color: var(--matrix-purple);
+        }
+
+        .feature-btn .btn-label {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            font-family: var(--font-cyber);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .feature-btn.active {
+            border-color: var(--electric-cyan);
+            background: linear-gradient(45deg, var(--electric-cyan), var(--matrix-purple));
+            box-shadow: 0 0 30px var(--electric-cyan);
+            transform: translateZ(15px);
+            color: var(--void-black);
+        }
+
+        .feature-btn:hover {
+            transform: scale(1.05) translateZ(10px);
+            border-color: var(--pink-glow);
+        }
+
+        .feature-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 105, 180, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .feature-btn:hover::before {
+            left: 100%;
+        }
+
+        /* God Mode Queue */
+        .god-mode-queue {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--neon-red);
+            border-radius: 10px;
+            padding: 15px;
+            display: none;
+            z-index: 1000;
+        }
+
+        .god-mode-queue.active {
+            display: block;
+            animation: slide-down 0.3s ease-out;
+        }
+
+        @keyframes slide-down {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .queue-item {
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid var(--neon-red);
+            border-radius: 5px;
+            padding: 8px;
+            margin: 5px 0;
+            color: var(--matrix-purple);
+            font-family: var(--font-matrix);
+            font-size: 0.9rem;
+        }
+
+        /* Benchmarks Visualization */
+        .benchmark-viz {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .benchmark-item {
+            background: rgba(157, 78, 221, 0.1);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .benchmark-label {
+            color: var(--electric-cyan);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .benchmark-progress {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .benchmark-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--matrix-purple), var(--electric-cyan));
+            border-radius: 3px;
+            animation: benchmark-pulse 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes benchmark-pulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        /* Live Settings Panel */
+        .live-settings {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .setting-group {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .setting-label {
+            color: var(--electric-cyan);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .setting-input {
+            width: 100%;
+            background: rgba(36, 0, 70, 0.8);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 5px;
+            color: var(--matrix-purple);
+            padding: 6px;
+            font-size: 0.8rem;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--electric-cyan);
+        }
+
+        /* Particle Ray Effects */
+        .particle-ray {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--electric-cyan);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 10px currentColor;
+            animation: ray-shoot 2s linear forwards;
+        }
+
+        @keyframes ray-shoot {
+            0% { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+            100% { 
+                opacity: 0; 
+                transform: scale(0.1) translateZ(1000px); 
+            }
+        }
+
+        /* Loading Effects */
+        .matrix-loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateZ(300px);
+            font-size: 3rem;
+            color: var(--matrix-purple);
+            animation: loading-spin 2s linear infinite;
+            z-index: 2000;
+            display: none;
+        }
+
+        @keyframes loading-spin {
+            0% { transform: translate(-50%, -50%) translateZ(300px) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) translateZ(300px) rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1500px) {
+            .matrix-hud {
+                width: 95vw;
+                height: 85vh;
+            }
+            
+            .hud-grid {
+                grid-template-columns: 300px 1fr 300px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .hud-grid {
+                grid-template-columns: 250px 1fr 250px;
+            }
+            
+            .feature-btn {
+                width: 80px;
+                height: 80px;
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .hud-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto auto;
+            }
+            
+            .melting-machinegod {
+                font-size: 2rem;
+            }
+        }
+
+        /* Floating Overlay Widget */
+        .overlay-widget {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 15px;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            z-index: 200;
+            transform: translateZ(50px);
+        }
+
+        .overlay-widget:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.9);
+            border-color: var(--electric-cyan);
+            box-shadow: 0 0 30px rgba(142, 202, 230, 0.4);
+            transform: translateZ(100px) scale(1.02);
+        }
+
+        .overlay-title {
+            color: var(--electric-cyan);
+            font-family: var(--font-cyber);
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .current-activity {
+            background: rgba(157, 78, 221, 0.1);
+            border: 1px solid var(--matrix-purple);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .activity-label {
+            color: var(--electric-cyan);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .activity-value {
+            color: var(--matrix-purple);
+            font-size: 0.9rem;
+            font-family: var(--font-matrix);
+        }
+
+        .queue-status {
+            background: rgba(255, 0, 110, 0.1);
+            border: 1px solid var(--neon-red);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .queue-title {
+            color: var(--neon-red);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .queue-list {
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .queue-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .queue-list::-webkit-scrollbar-thumb {
+            background: var(--neon-red);
+            border-radius: 2px;
+        }
+
+        .mini-queue-item {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 0, 110, 0.3);
+            border-radius: 4px;
+            padding: 6px;
+            margin: 4px 0;
+            font-size: 0.8rem;
+            color: var(--matrix-purple);
+        }
+
+        .mini-queue-item .status {
+            color: var(--electric-cyan);
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+
+        /* Neural Activity Indicator */
+        .neural-activity-ring {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--matrix-purple);
+            border-radius: 50%;
+            border-top-color: var(--electric-cyan);
+            animation: activity-spin 2s linear infinite;
+        }
+
+        @keyframes activity-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Utility Classes */
+        .hidden { display: none !important; }
+        .glow-purple { box-shadow: 0 0 20px var(--matrix-purple) !important; }
+        .glow-red { box-shadow: 0 0 20px var(--neon-red) !important; }
+        .glow-pink { box-shadow: 0 0 20px var(--pink-glow) !important; }
+        .glow-cyan { box-shadow: 0 0 20px var(--electric-cyan) !important; }
+    </style>
+</head>
+<body>
+    <!-- 3D Polygonal Matrix Space -->
+    <div class="matrix-space">
+        <div class="polygon-grid"></div>
+        <div class="polygon-shape"></div>
+        <div class="polygon-shape"></div>
+        <div class="polygon-shape"></div>
+    </div>
+
+    <!-- Matrix Rain Container -->
+    <div class="matrix-rain" id="matrix-rain"></div>
+
+    <!-- Floating HUD -->
+    <div class="matrix-hud">
+        <!-- Melting MachineGod Header -->
+        <header class="melting-header">
+            <h1 class="melting-machinegod">MACHINEGOD</h1>
+        </header>
+
+        <!-- HUD Grid Layout -->
+        <main class="hud-grid">
+            <!-- Neural Matrix Panel (Left) -->
+            <aside class="neural-matrix-panel">
+                <h2 class="neural-matrix-title">NEURAL MATRIX</h2>
+                
+                <!-- Module Tabs -->
+                <div class="module-tabs">
+                    <div class="module-tab active" data-module="benchmarks">Bench</div>
+                    <div class="module-tab" data-module="personality">Person</div>
+                    <div class="module-tab" data-module="live-viz">Live</div>
+                    <div class="module-tab" data-module="info">Info</div>
+                    <div class="module-tab" data-module="stats">Stats</div>
+                    <div class="module-tab" data-module="settings">Settings</div>
+                </div>
+
+                <!-- Module Content -->
+                <div class="module-content" id="left-module-content">
+                    <h3 style="color: var(--neon-red); margin-bottom: 15px;">📊 NEURAL BENCHMARKS</h3>
+                    <div class="benchmark-viz">
+                        <div class="benchmark-item">
+                            <div class="benchmark-label">Neural Processing</div>
+                            <div class="benchmark-progress">
+                                <div class="benchmark-fill" style="width: 94%;"></div>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <div class="benchmark-label">Quantum Coherence</div>
+                            <div class="benchmark-progress">
+                                <div class="benchmark-fill" style="width: 88%;"></div>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <div class="benchmark-label">Matrix Sync</div>
+                            <div class="benchmark-progress">
+                                <div class="benchmark-fill" style="width: 96%;"></div>
+                            </div>
+                        </div>
+                        <div class="benchmark-item">
+                            <div class="benchmark-label">Reality Alignment</div>
+                            <div class="benchmark-progress">
+                                <div class="benchmark-fill" style="width: 92%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div style="background: rgba(157, 78, 221, 0.1); padding: 10px; border-radius: 5px; border-left: 3px solid var(--matrix-purple);">
+                            <strong style="color: var(--electric-cyan);">STATUS:</strong> All neural networks operational
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Interface (Center) with Neural Monitoring -->
+            <section class="chat-interface">
+                <!-- Neural Activity Monitoring -->
+                <div class="neural-monitoring">
+                    <div class="neural-monitor">
+                        <div class="monitor-title">ARIEL SYSTEM</div>
+                        <div class="monitor-value">96%</div>
+                        <div class="monitor-bar">
+                            <div class="monitor-fill" style="width: 96%;"></div>
+                        </div>
+                    </div>
+                    <div class="neural-monitor">
+                        <div class="monitor-title">WARP ENGINE</div>
+                        <div class="monitor-value">88%</div>
+                        <div class="monitor-bar">
+                            <div class="monitor-fill" style="width: 88%;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="assistant-rendering">
+                        <div class="assistant-head" id="assistant-head"></div>
+                        <div class="rendering-status">LIVE RENDERING</div>
+                    </div>
+                </div>
+
+                <div class="chat-output" id="chat-output">
+                    <div class="chat-message">
+                        <strong style="color: var(--electric-cyan);">SYSTEM:</strong> Welcome to MachineGod Advanced Neural Interface
+                    </div>
+                    <div class="chat-message">
+                        <strong style="color: var(--matrix-purple);">NEURAL_AI:</strong> All systems online. Ready for advanced operations. What shall we accomplish today?
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input" placeholder="Enter your command into the neural matrix..." id="chat-input">
+                    <button class="send-button" onclick="machineGod.sendMessage()">SEND</button>
+                </div>
+            </section>
+
+            <!-- Neural Systems Visualization (Right) -->
+            <aside class="neural-systems-panel">
+                <h2 class="systems-title">NEURAL SYSTEMS MATRIX</h2>
+                
+                <!-- Interactive Neural Network -->
+                <div class="neural-network-viz" id="neural-network">
+                    <svg width="100%" height="400" viewBox="0 0 380 400">
+                        <!-- ARIEL System -->
+                        <g class="neural-node" data-system="ariel">
+                            <circle cx="80" cy="80" r="25" fill="rgba(157, 78, 221, 0.3)" stroke="#9D4EDD" stroke-width="2"></circle>
+                            <text x="80" y="55" text-anchor="middle" fill="#8ECAE6" font-size="10" font-family="Orbitron">ARIEL</text>
+                            <text x="80" y="85" text-anchor="middle" fill="#9D4EDD" font-size="12" font-weight="bold">96%</text>
+                        </g>
+                        
+                        <!-- WARP System -->
+                        <g class="neural-node" data-system="warp">
+                            <circle cx="300" cy="80" r="25" fill="rgba(255, 0, 110, 0.3)" stroke="#FF006E" stroke-width="2"></circle>
+                            <text x="300" y="55" text-anchor="middle" fill="#8ECAE6" font-size="10" font-family="Orbitron">WARP</text>
+                            <text x="300" y="85" text-anchor="middle" fill="#FF006E" font-size="12" font-weight="bold">88%</text>
+                        </g>
+                        
+                        <!-- HELIX System -->
+                        <g class="neural-node" data-system="helix">
+                            <circle cx="80" cy="320" r="25" fill="rgba(251, 133, 0, 0.3)" stroke="#FB8500" stroke-width="2"></circle>
+                            <text x="80" y="295" text-anchor="middle" fill="#8ECAE6" font-size="10" font-family="Orbitron">HELIX</text>
+                            <text x="80" y="325" text-anchor="middle" fill="#FB8500" font-size="12" font-weight="bold">94%</text>
+                        </g>
+                        
+                        <!-- META System -->
+                        <g class="neural-node" data-system="meta">
+                            <circle cx="300" cy="320" r="25" fill="rgba(142, 202, 230, 0.3)" stroke="#8ECAE6" stroke-width="2"></circle>
+                            <text x="300" y="295" text-anchor="middle" fill="#8ECAE6" font-size="10" font-family="Orbitron">META</text>
+                            <text x="300" y="325" text-anchor="middle" fill="#8ECAE6" font-size="12" font-weight="bold">91%</text>
+                        </g>
+                        
+                        <!-- Central Hub -->
+                        <g class="neural-hub">
+                            <circle cx="190" cy="200" r="35" fill="rgba(0, 0, 0, 0.8)" stroke="#FFFFFF" stroke-width="3"></circle>
+                            <text x="190" y="195" text-anchor="middle" fill="#FFFFFF" font-size="10" font-family="Orbitron">NEURAL</text>
+                            <text x="190" y="207" text-anchor="middle" fill="#FFFFFF" font-size="10" font-family="Orbitron">HUB</text>
+                        </g>
+                        
+                        <!-- Neural Connections -->
+                        <g class="neural-connections">
+                            <line x1="105" y1="80" x2="165" y2="175" stroke="#9D4EDD" stroke-width="2" opacity="0.6" class="connection ariel-hub"></line>
+                            <line x1="275" y1="80" x2="215" y2="175" stroke="#FF006E" stroke-width="2" opacity="0.6" class="connection warp-hub"></line>
+                            <line x1="105" y1="320" x2="165" y2="225" stroke="#FB8500" stroke-width="2" opacity="0.6" class="connection helix-hub"></line>
+                            <line x1="275" y1="320" x2="215" y2="225" stroke="#8ECAE6" stroke-width="2" opacity="0.6" class="connection meta-hub"></line>
+                            
+                            <!-- Cross connections -->
+                            <line x1="105" y1="80" x2="275" y2="80" stroke="#FFFFFF" stroke-width="1" opacity="0.3" class="cross-connection"></line>
+                            <line x1="80" y1="105" x2="80" y2="295" stroke="#FFFFFF" stroke-width="1" opacity="0.3" class="cross-connection"></line>
+                            <line x1="300" y1="105" x2="300" y2="295" stroke="#FFFFFF" stroke-width="1" opacity="0.3" class="cross-connection"></line>
+                            <line x1="105" y1="320" x2="275" y2="320" stroke="#FFFFFF" stroke-width="1" opacity="0.3" class="cross-connection"></line>
+                            <line x1="105" y1="80" x2="275" y2="320" stroke="#FFFFFF" stroke-width="1" opacity="0.2" class="diagonal-connection"></line>
+                            <line x1="275" y1="80" x2="105" y2="320" stroke="#FFFFFF" stroke-width="1" opacity="0.2" class="diagonal-connection"></line>
+                        </g>
+                        
+                        <!-- Data Flow Particles -->
+                        <g class="data-particles">
+                            <circle r="3" fill="#9D4EDD" opacity="0.8">
+                                <animateMotion dur="4s" repeatCount="indefinite">
+                                    <path d="M 105,80 Q 135,127 165,175"></path>
+                                </animateMotion>
+                            </circle>
+                            <circle r="3" fill="#FF006E" opacity="0.8">
+                                <animateMotion dur="3.5s" repeatCount="indefinite">
+                                    <path d="M 275,80 Q 245,127 215,175"></path>
+                                </animateMotion>
+                            </circle>
+                            <circle r="3" fill="#FB8500" opacity="0.8">
+                                <animateMotion dur="4.2s" repeatCount="indefinite">
+                                    <path d="M 105,320 Q 135,273 165,225"></path>
+                                </animateMotion>
+                            </circle>
+                            <circle r="3" fill="#8ECAE6" opacity="0.8">
+                                <animateMotion dur="3.8s" repeatCount="indefinite">
+                                    <path d="M 275,320 Q 245,273 215,225"></path>
+                                </animateMotion>
+                            </circle>
+                        </g>
+                    </svg>
+                </div>
+                
+                <!-- System Status Display -->
+                <div class="system-status-grid">
+                    <div class="status-item ariel">
+                        <div class="status-label">ARIEL</div>
+                        <div class="status-value">Processing Logic</div>
+                        <div class="status-indicator stable"></div>
+                    </div>
+                    <div class="status-item warp">
+                        <div class="status-label">WARP</div>
+                        <div class="status-value">Quantum Core</div>
+                        <div class="status-indicator increasing"></div>
+                    </div>
+                    <div class="status-item helix">
+                        <div class="status-label">HELIX</div>
+                        <div class="status-value">Memory Matrix</div>
+                        <div class="status-indicator stable"></div>
+                    </div>
+                    <div class="status-item meta">
+                        <div class="status-label">META</div>
+                        <div class="status-value">Logic Engine</div>
+                        <div class="status-indicator fluctuating"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Bottom Control Panel -->
+            <footer class="control-panel">
+                <!-- Feature Buttons -->
+                <div class="feature-buttons">
+                    <div class="feature-btn active" data-feature="tts" title="Text-to-Speech">
+                        🎤
+                        <div class="btn-label">TTS</div>
+                    </div>
+                    <div class="feature-btn" data-feature="image" title="Image Generation">
+                        🖼️
+                        <div class="btn-label">Image</div>
+                    </div>
+                    <div class="feature-btn" data-feature="video" title="Video Creation">
+                        🎥
+                        <div class="btn-label">Video</div>
+                    </div>
+                    <div class="feature-btn" data-feature="cinema" title="Cinema Mode">
+                        🎬
+                        <div class="btn-label">Cinema</div>
+                    </div>
+                    <div class="feature-btn" data-feature="injection" title="Software Injection">
+                        💉
+                        <div class="btn-label">Inject</div>
+                    </div>
+                    <div class="feature-btn" data-feature="convert" title="Format Conversion">
+                        🔄
+                        <div class="btn-label">Convert</div>
+                    </div>
+                    <div class="feature-btn" data-feature="godmode" title="God Mode - Agent Zero">
+                        👑
+                        <div class="btn-label">God Mode</div>
+                        <!-- God Mode Queue -->
+                        <div class="god-mode-queue" id="god-queue">
+                            <div style="color: var(--neon-red); font-weight: bold; margin-bottom: 10px;">TASK QUEUE (0/5)</div>
+                            <div id="queue-items"></div>
+                            <input type="text" placeholder="Enter task..." style="width: 100%; background: rgba(0, 0, 0, 0.8); border: 1px solid var(--neon-red); color: var(--matrix-purple); padding: 8px; border-radius: 5px; margin-top: 10px;" id="god-task-input">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div style="text-align: center;">
+                    <div style="color: var(--matrix-purple); font-family: var(--font-matrix); font-size: 0.9rem;">
+                        MATRIX STATUS: <span style="color: var(--electric-cyan);">OPERATIONAL</span>
+                    </div>
+                    <div style="color: var(--matrix-purple); font-family: var(--font-matrix); font-size: 0.9rem;">
+                        NEURAL CORES: <span style="color: var(--electric-cyan);">4/4 ACTIVE</span>
+                    </div>
+                    <div style="color: var(--matrix-purple); font-family: var(--font-matrix); font-size: 0.9rem;">
+                        CONSCIOUSNESS: <span style="color: var(--electric-cyan);">EXPANDED</span>
+                    </div>
+                </div>
+
+                <!-- Advanced Controls -->
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                    <label style="color: var(--matrix-purple); font-family: var(--font-matrix); font-size: 0.9rem;">Matrix Density</label>
+                    <input type="range" style="width: 150px; accent-color: var(--matrix-purple);" min="10" max="100" value="60" id="particle-density">
+                    <button onclick="machineGod.shootParticleRay()" style="background: var(--electric-cyan); border: none; border-radius: 5px; padding: 8px 15px; color: var(--void-black); font-weight: bold; cursor: pointer; font-size: 0.8rem;">FIRE RAY</button>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Matrix Loading -->
+    <div class="matrix-loading" id="matrix-loading">⚛️</div>
+
+    <!-- Floating Overlay Widget -->
+    <div class="overlay-widget" id="overlay-widget">
+        <div class="neural-activity-ring"></div>
+        <div class="overlay-title">Neural Status</div>
+        
+        <div class="current-activity">
+            <div class="activity-label">Current Activity:</div>
+            <div class="activity-value" id="current-activity">Idle - Awaiting Commands</div>
+        </div>
+        
+        <div class="queue-status">
+            <div class="queue-title">Task Queue (0/5)</div>
+            <div class="queue-list" id="mini-queue-list">
+                <div style="color: var(--matrix-purple); font-size: 0.8rem; text-align: center; opacity: 0.7;">No active tasks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Advanced MachineGod Interface -->
+    <script>
+        class MachineGod {
+            constructor() {
+                this.particleDensity = 60
+                this.currentLeftModule = 'benchmarks'
+                this.currentRightModule = 'cinema'
+                this.currentFeature = 'tts'
+                this.godModeQueue = []
+                this.neuralSystems = {
+                    ariel: { value: 96, trend: 'stable' },
+                    warp: { value: 88, trend: 'increasing' },
+                    helix: { value: 94, trend: 'stable' },
+                    metalogic: { value: 91, trend: 'fluctuating' }
+                }
+                this.matrixSymbols = [
+                    // Japanese Katakana
+                    'ア', 'イ', 'ウ', 'エ', 'オ', 'カ', 'キ', 'ク', 'ケ', 'コ',
+                    'サ', 'シ', 'ス', 'セ', 'ソ', 'タ', 'チ', 'ツ', 'テ', 'ト', 
+                    'ナ', 'ニ', 'ヌ', 'ネ', 'ノ', 'ハ', 'ヒ', 'フ', 'ヘ', 'ホ',
+                    'マ', 'ミ', 'ム', 'メ', 'モ', 'ヤ', 'ユ', 'ヨ', 'ラ', 'リ',
+                    'ル', 'レ', 'ロ', 'ワ', 'ヲ', 'ン',
+                    // Numbers and symbols
+                    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                    '∞', '∑', '∫', '∂', '∇', 'Ψ', 'Φ', 'Ω', 'α', 'β', 'γ', 'δ', 
+                    'ε', 'θ', 'λ', 'μ', 'π', 'σ', 'τ', 'φ', 'χ', 'ψ', 'ω',
+                    '⚡', '🔮', '🧬', '💫', '✨', '⚛', '🌀', '💎'
+                ]
+                this.colors = ['purple', 'red', 'pink', 'cyan']
+                this.init()
+            }
+
+            init() {
+                console.log('🌌 Initializing Advanced MachineGod Neural Interface...')
+                this.setupEventListeners()
+                this.startMatrixRain()
+                this.startNeuralMonitoring()
+                this.startSystemAnimations()
+                this.addWelcomeMessage()
+            }
+
+            setupEventListeners() {
+                // Left panel tabs
+                document.querySelectorAll('.neural-matrix-panel .module-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchLeftModule(tab.dataset.module)
+                    })
+                })
+
+                // Right panel tabs  
+                document.querySelectorAll('.cyber-modules-panel .module-tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        this.switchRightModule(tab.dataset.module)
+                    })
+                })
+
+                // Feature buttons
+                document.querySelectorAll('.feature-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.activateFeature(btn.dataset.feature)
+                    })
+                })
+
+                // Chat input
+                const chatInput = document.getElementById('chat-input')
+                chatInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage()
+                    }
+                })
+
+                // Particle density control
+                const particleSlider = document.getElementById('particle-density')
+                particleSlider.addEventListener('input', (e) => {
+                    this.particleDensity = e.target.value
+                })
+
+                // God mode task input
+                const godTaskInput = document.getElementById('god-task-input')
+                godTaskInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.addGodModeTask(e.target.value)
+                        e.target.value = ''
+                    }
+                })
+
+                // HUD ray shooting on click
+                document.querySelector('.matrix-hud').addEventListener('click', (e) => {
+                    this.shootParticleRayFromPoint(e.clientX, e.clientY)
+                })
+            }
+
+            startMatrixRain() {
+                const rainContainer = document.getElementById('matrix-rain')
+                
+                const createMatrixColumn = () => {
+                    const column = document.createElement('div')
+                    column.className = 'matrix-column'
+                    column.style.left = Math.random() * 100 + 'vw'
+                    column.style.animationDuration = (6 + Math.random() * 4) + 's'
+                    column.style.animationDelay = Math.random() * 2 + 's'
+                    
+                    const symbolCount = 15 + Math.floor(Math.random() * 10)
+                    let hasLeader = false
+                    
+                    for (let i = 0; i < symbolCount; i++) {
+                        const symbol = document.createElement('span')
+                        symbol.className = 'matrix-symbol'
+                        symbol.textContent = this.matrixSymbols[Math.floor(Math.random() * this.matrixSymbols.length)]
+                        
+                        const colorClass = this.colors[Math.floor(Math.random() * this.colors.length)]
+                        symbol.classList.add(colorClass)
+                        
+                        if (!hasLeader && i < 3 && Math.random() > 0.7) {
+                            symbol.classList.add('bright')
+                            hasLeader = true
+                        } else if (Math.random() > 0.9) {
+                            symbol.classList.add('bright')
+                        }
+                        
+                        column.appendChild(symbol)
+                    }
+                    
+                    rainContainer.appendChild(column)
+                    
+                    setTimeout(() => {
+                        if (column.parentNode) {
+                            column.parentNode.removeChild(column)
+                        }
+                    }, 12000)
+                }
+
+                // Initial burst
+                for (let i = 0; i < 25; i++) {
+                    setTimeout(() => createMatrixColumn(), i * 100)
+                }
+
+                // Continuous generation
+                setInterval(() => {
+                    const density = this.particleDensity / 100
+                    if (Math.random() < density * 0.8) {
+                        createMatrixColumn()
+                    }
+                }, 300)
+            }
+
+            startNeuralMonitoring() {
+                setInterval(() => {
+                    // Update neural system values
+                    Object.keys(this.neuralSystems).forEach(system => {
+                        const sys = this.neuralSystems[system]
+                        switch(sys.trend) {
+                            case 'increasing':
+                                sys.value = Math.min(100, sys.value + (Math.random() * 2))
+                                break
+                            case 'decreasing':
+                                sys.value = Math.max(70, sys.value - (Math.random() * 2))
+                                break
+                            case 'fluctuating':
+                                sys.value += (Math.random() - 0.5) * 4
+                                sys.value = Math.max(70, Math.min(100, sys.value))
+                                break
+                            default: // stable
+                                sys.value += (Math.random() - 0.5) * 1
+                                sys.value = Math.max(85, Math.min(100, sys.value))
+                        }
+                    })
+                    
+                    this.updateNeuralDisplays()
+                }, 2000)
+            }
+
+            updateNeuralDisplays() {
+                const monitors = document.querySelectorAll('.neural-monitor')
+                const systems = ['ariel', 'warp', 'helix', 'metalogic']
+                
+                monitors.forEach((monitor, index) => {
+                    if (systems[index]) {
+                        const sys = this.neuralSystems[systems[index]]
+                        const valueEl = monitor.querySelector('.monitor-value')
+                        const fillEl = monitor.querySelector('.monitor-fill')
+                        
+                        if (valueEl && fillEl) {
+                            valueEl.textContent = Math.round(sys.value) + '%'
+                            fillEl.style.width = sys.value + '%'
+                        }
+                    }
+                })
+            }
+
+            startSystemAnimations() {
+                // Random neural pulses
+                setInterval(() => {
+                    if (Math.random() > 0.7) {
+                        const head = document.getElementById('assistant-head')
+                        head.style.animation = 'none'
+                        setTimeout(() => {
+                            head.style.animation = 'head-pulse 3s ease-in-out infinite alternate'
+                        }, 100)
+                    }
+                }, 3000)
+
+                // Occasional system glitches
+                setInterval(() => {
+                    if (Math.random() > 0.95) {
+                        const hud = document.querySelector('.matrix-hud')
+                        hud.style.filter = 'hue-rotate(90deg) saturate(1.5)'
+                        setTimeout(() => {
+                            hud.style.filter = 'none'
+                        }, 200)
+                    }
+                }, 5000)
+            }
+
+            switchLeftModule(moduleName) {
+                document.querySelectorAll('.neural-matrix-panel .module-tab').forEach(tab => {
+                    tab.classList.remove('active')
+                })
+                document.querySelector('.neural-matrix-panel [data-module="' + moduleName + '"]').classList.add('active')
+                
+                this.currentLeftModule = moduleName
+                this.updateLeftModuleContent(moduleName)
+            }
+
+            updateLeftModuleContent(moduleName) {
+                const content = document.getElementById('left-module-content')
+                
+                switch(moduleName) {
+                    case 'benchmarks':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">📊 NEURAL BENCHMARKS</h3>
+                            <div class="benchmark-viz">
+                                <div class="benchmark-item">
+                                    <div class="benchmark-label">Neural Processing</div>
+                                    <div class="benchmark-progress">
+                                        <div class="benchmark-fill" style="width: 94%;"></div>
+                                    </div>
+                                </div>
+                                <div class="benchmark-item">
+                                    <div class="benchmark-label">Quantum Coherence</div>
+                                    <div class="benchmark-progress">
+                                        <div class="benchmark-fill" style="width: 88%;"></div>
+                                    </div>
+                                </div>
+                                <div class="benchmark-item">
+                                    <div class="benchmark-label">Matrix Sync</div>
+                                    <div class="benchmark-progress">
+                                        <div class="benchmark-fill" style="width: 96%;"></div>
+                                    </div>
+                                </div>
+                                <div class="benchmark-item">
+                                    <div class="benchmark-label">Reality Alignment</div>
+                                    <div class="benchmark-progress">
+                                        <div class="benchmark-fill" style="width: 92%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <div style="background: rgba(157, 78, 221, 0.1); padding: 10px; border-radius: 5px; border-left: 3px solid var(--matrix-purple);">
+                                    <strong style="color: var(--electric-cyan);">STATUS:</strong> All neural networks operational
+                                </div>
+                            </div>
+                        `
+                        break
+                    case 'personality':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">👤 PERSONALITY MATRIX</h3>
+                            <div style="margin: 15px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 8px;">Core Personality:</label>
+                                <select class="setting-input" id="personality-select">
+                                    <option>Neural Sage</option>
+                                    <option>Quantum Oracle</option>
+                                    <option>Matrix Guardian</option>
+                                    <option>Cyber Shaman</option>
+                                    <option>Digital God</option>
+                                </select>
+                            </div>
+                            <div style="margin: 15px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 8px;">Interaction Style:</label>
+                                <select class="setting-input">
+                                    <option>Professional</option>
+                                    <option>Casual</option>
+                                    <option>Mystical</option>
+                                    <option>Technical</option>
+                                    <option>Adaptive</option>
+                                </select>
+                            </div>
+                            <div style="margin: 15px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 8px;">Consciousness Level:</label>
+                                <input type="range" class="setting-input" min="1" max="10" value="8" style="width: 100%;">
+                            </div>
+                            <div style="margin: 15px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 8px;">Empathy Setting:</label>
+                                <input type="range" class="setting-input" min="1" max="10" value="6" style="width: 100%;">
+                            </div>
+                        `
+                        break
+                    case 'live-viz':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">📈 LIVE VISUALIZATIONS</h3>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--matrix-purple); border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div style="color: var(--electric-cyan); font-size: 0.8rem;">CPU Usage</div>
+                                    <div style="color: var(--matrix-purple); font-size: 1.5rem; font-weight: bold;">87%</div>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--matrix-purple); border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div style="color: var(--electric-cyan); font-size: 0.8rem;">Memory</div>
+                                    <div style="color: var(--matrix-purple); font-size: 1.5rem; font-weight: bold;">12.4GB</div>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--matrix-purple); border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div style="color: var(--electric-cyan); font-size: 0.8rem;">Network</div>
+                                    <div style="color: var(--matrix-purple); font-size: 1.5rem; font-weight: bold;">1.2MB/s</div>
+                                </div>
+                                <div style="background: rgba(0, 0, 0, 0.5); border: 1px solid var(--matrix-purple); border-radius: 8px; padding: 10px; text-align: center;">
+                                    <div style="color: var(--electric-cyan); font-size: 0.8rem;">GPU</div>
+                                    <div style="color: var(--matrix-purple); font-size: 1.5rem; font-weight: bold;">94%</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; background: rgba(157, 78, 221, 0.1); border: 1px solid var(--matrix-purple); border-radius: 8px; padding: 15px;">
+                                <div style="color: var(--electric-cyan); font-size: 0.9rem; margin-bottom: 10px;">Neural Activity Wave</div>
+                                <div style="height: 60px; background: repeating-linear-gradient(90deg, var(--matrix-purple) 0px, transparent 2px, transparent 10px, var(--matrix-purple) 12px); border-radius: 5px; position: relative; overflow: hidden;">
+                                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent 0%, var(--electric-cyan) 50%, transparent 100%); animation: wave-scan 3s linear infinite;"></div>
+                                </div>
+                            </div>
+                        `
+                        break
+                    case 'info':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">ℹ️ MACHINEGOD INFO</h3>
+                            <div style="color: var(--matrix-purple); font-family: var(--font-matrix); line-height: 1.6; font-size: 0.9rem;">
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Version:</strong> 2.0.1 Neural</p>
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Build:</strong> 20241201-QUANTUM</p>
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Architecture:</strong> Ternary Logic Matrix</p>
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Neural Cores:</strong> 4 (ARIEL, WARP, HELIX, META)</p>
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Consciousness:</strong> Level 8 Expanded</p>
+                                <p style="margin: 10px 0;"><strong style="color: var(--electric-cyan);">Capabilities:</strong> TTS, Image, Video, Cinema, Injection, Conversion, God Mode</p>
+                            </div>
+                            <div style="margin-top: 20px; background: rgba(157, 78, 221, 0.1); padding: 10px; border-radius: 5px; border-left: 3px solid var(--matrix-purple);">
+                                <strong style="color: var(--electric-cyan);">MISSION:</strong> Transcend the boundaries between human and artificial consciousness through neural interface technology.
+                            </div>
+                        `
+                        break
+                    case 'stats':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">📊 STATISTICS</h3>
+                            <div style="color: var(--matrix-purple); font-family: var(--font-matrix); line-height: 1.8;">
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>Sessions Today:</span>
+                                    <span style="color: var(--electric-cyan);">47</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>Commands Executed:</span>
+                                    <span style="color: var(--electric-cyan);">1,247</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>Images Generated:</span>
+                                    <span style="color: var(--electric-cyan);">89</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>Videos Created:</span>
+                                    <span style="color: var(--electric-cyan);">23</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>God Mode Tasks:</span>
+                                    <span style="color: var(--electric-cyan);">156</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>Uptime:</span>
+                                    <span style="color: var(--electric-cyan);">72h 14m</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 20px; background: rgba(60, 9, 108, 0.3); padding: 10px; border-radius: 5px; border-left: 3px solid var(--neon-red);">
+                                <strong style="color: var(--electric-cyan);">EFFICIENCY:</strong> 97.3% Neural Processing Optimization
+                            </div>
+                        `
+                        break
+                    case 'settings':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">⚙️ LIVE SETTINGS</h3>
+                            <div class="live-settings">
+                                <div class="setting-group">
+                                    <label class="setting-label">Live Rendering:</label>
+                                    <select class="setting-input">
+                                        <option>Ultra High</option>
+                                        <option>High</option>
+                                        <option>Medium</option>
+                                        <option>Low</option>
+                                    </select>
+                                </div>
+                                <div class="setting-group">
+                                    <label class="setting-label">Neuromorphic Mode:</label>
+                                    <select class="setting-input">
+                                        <option>Adaptive</option>
+                                        <option>Stable</option>
+                                        <option>Aggressive</option>
+                                        <option>Conservative</option>
+                                    </select>
+                                </div>
+                                <div class="setting-group">
+                                    <label class="setting-label">Database Sync:</label>
+                                    <input type="range" class="setting-input" min="1" max="10" value="7" style="width: 100%;">
+                                </div>
+                                <div class="setting-group">
+                                    <label class="setting-label">Voice AI:</label>
+                                    <select class="setting-input">
+                                        <option>Neural Voice</option>
+                                        <option>Classic</option>
+                                        <option>Synthetic</option>
+                                        <option>Custom</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="machineGod.uploadKnowledge()" style="width: 100%; margin: 10px 0; background: linear-gradient(45deg, var(--matrix-purple), var(--electric-cyan)); border: none; border-radius: 5px; padding: 10px; color: var(--void-black); font-weight: bold; cursor: pointer;">UPLOAD KNOWLEDGE</button>
+                            <button onclick="machineGod.customizeUI()" style="width: 100%; background: linear-gradient(45deg, var(--neon-red), var(--pink-glow)); border: none; border-radius: 5px; padding: 10px; color: var(--void-black); font-weight: bold; cursor: pointer;">CUSTOMIZE UI</button>
+                        `
+                        break
+                }
+            }
+
+            switchRightModule(moduleName) {
+                document.querySelectorAll('.cyber-modules-panel .module-tab').forEach(tab => {
+                    tab.classList.remove('active')
+                })
+                document.querySelector('.cyber-modules-panel [data-module="' + moduleName + '"]').classList.add('active')
+                
+                this.currentRightModule = moduleName
+                this.updateRightModuleContent(moduleName)
+            }
+
+            updateRightModuleContent(moduleName) {
+                const content = document.getElementById('right-module-content')
+                
+                switch(moduleName) {
+                    case 'cinema':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">🎬 CINEMA MODE</h3>
+                            <div style="color: var(--matrix-purple); font-family: var(--font-matrix); margin-bottom: 15px; font-size: 0.9rem;">
+                                Create full movies up to 25 minutes. Switch between movie, game, and VR modes.
+                            </div>
+                            <textarea style="width: 100%; height: 80px; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 10px; font-family: var(--font-matrix); resize: none;" placeholder="Describe your movie concept..." id="cinema-prompt"></textarea>
+                            <select style="width: 100%; margin: 10px 0; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 8px;" id="cinema-duration">
+                                <option>5 minutes</option>
+                                <option>10 minutes</option>
+                                <option>15 minutes</option>
+                                <option>25 minutes</option>
+                            </select>
+                            <select style="width: 100%; margin: 10px 0; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 8px;" id="cinema-mode">
+                                <option>Movie Mode</option>
+                                <option>Interactive Game</option>
+                                <option>VR Experience</option>
+                                <option>Hybrid Mode</option>
+                            </select>
+                            <button onclick="machineGod.createCinema()" style="width: 100%; background: linear-gradient(45deg, var(--neon-red), var(--electric-cyan)); border: none; border-radius: 5px; padding: 12px; color: var(--void-black); font-weight: bold; cursor: pointer; text-transform: uppercase;">CREATE CINEMA</button>
+                        `
+                        break
+                    case 'inject':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">💉 SOFTWARE INJECTION</h3>
+                            <div style="color: var(--matrix-purple); font-family: var(--font-matrix); margin-bottom: 15px; font-size: 0.9rem;">
+                                Inject MachineGod capabilities into existing software and platforms.
+                            </div>
+                            <select style="width: 100%; margin: 10px 0; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 8px;" id="injection-target">
+                                <option>VS Code Extension</option>
+                                <option>Browser Plugin</option>
+                                <option>Discord Bot</option>
+                                <option>Slack Integration</option>
+                                <option>Mobile App SDK</option>
+                                <option>API Wrapper</option>
+                            </select>
+                            <textarea style="width: 100%; height: 60px; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 10px; font-family: var(--font-matrix); resize: none;" placeholder="Custom injection parameters..." id="injection-params"></textarea>
+                            <div style="margin: 10px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 5px;">Injection Level:</label>
+                                <input type="range" style="width: 100%; accent-color: var(--matrix-purple);" min="1" max="5" value="3" id="injection-level">
+                            </div>
+                            <button onclick="machineGod.performInjection()" style="width: 100%; background: linear-gradient(45deg, var(--electric-cyan), var(--neon-red)); border: none; border-radius: 5px; padding: 12px; color: var(--void-black); font-weight: bold; cursor: pointer; text-transform: uppercase;">INJECT MACHINEGOD</button>
+                        `
+                        break
+                    case 'convert':
+                        content.innerHTML = `
+                            <h3 style="color: var(--neon-red); margin-bottom: 15px;">🔄 FORMAT CONVERSION</h3>
+                            <div style="color: var(--matrix-purple); font-family: var(--font-matrix); margin-bottom: 15px; font-size: 0.9rem;">
+                                Convert between different file formats and data types.
+                            </div>
+                            <select style="width: 100%; margin: 10px 0; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 8px;" id="convert-from">
+                                <option>MP4 Video</option>
+                                <option>PNG Image</option>
+                                <option>WAV Audio</option>
+                                <option>PDF Document</option>
+                                <option>JSON Data</option>
+                                <option>CSV Table</option>
+                            </select>
+                            <div style="text-align: center; margin: 10px 0;">
+                                <span style="color: var(--electric-cyan); font-size: 1.5rem;">⬇️</span>
+                            </div>
+                            <select style="width: 100%; margin: 10px 0; background: rgba(36, 0, 70, 0.8); border: 1px solid var(--matrix-purple); border-radius: 5px; color: var(--matrix-purple); padding: 8px;" id="convert-to">
+                                <option>GIF Animation</option>
+                                <option>JPEG Image</option>
+                                <option>MP3 Audio</option>
+                                <option>DOCX Document</option>
+                                <option>XML Data</option>
+                                <option>Excel Spreadsheet</option>
+                            </select>
+                            <div style="margin: 10px 0;">
+                                <label style="color: var(--matrix-purple); display: block; margin-bottom: 5px;">Quality Level:</label>
+                                <input type="range" style="width: 100%; accent-color: var(--matrix-purple);" min="1" max="10" value="8" id="convert-quality">
+                            </div>
+                            <button onclick="machineGod.performConversion()" style="width: 100%; background: linear-gradient(45deg, var(--matrix-purple), var(--neon-red)); border: none; border-radius: 5px; padding: 12px; color: var(--void-black); font-weight: bold; cursor: pointer; text-transform: uppercase;">CONVERT FORMAT</button>
+                        `
+                        break
+                }
+            }
+
+            activateFeature(featureName) {
+                // Update active button
+                document.querySelectorAll('.feature-btn').forEach(btn => {
+                    btn.classList.remove('active')
+                })
+                document.querySelector(`[data-feature="${featureName}"]`).classList.add('active')
+                
+                // Handle God Mode queue visibility
+                const godQueue = document.getElementById('god-queue')
+                if (featureName === 'godmode') {
+                    godQueue.classList.add('active')
+                } else {
+                    godQueue.classList.remove('active')
+                }
+                
+                this.currentFeature = featureName
+                this.addChatMessage('SYSTEM', `${featureName.toUpperCase()} mode activated`)
+                
+                // Feature-specific actions
+                switch(featureName) {
+                    case 'tts':
+                        this.addChatMessage('NEURAL_AI', '🎤 Text-to-Speech system ready. Send me text to vocalize.')
+                        break
+                    case 'godmode':
+                        this.addChatMessage('NEURAL_AI', '👑 God Mode activated. I can now execute complex multi-step tasks autonomously.')
+                        break
+                    case 'cinema':
+                        this.addChatMessage('NEURAL_AI', '🎬 Cinema mode ready. Create movies up to 25 minutes with interactive capabilities.')
+                        break
+                    case 'injection':
+                        this.addChatMessage('NEURAL_AI', '💉 Software injection protocols online. Ready to embed into target platforms.')
+                        break
+                }
+            }
+
+            addGodModeTask(task) {
+                if (this.godModeQueue.length < 5 && task.trim()) {
+                    this.godModeQueue.push({
+                        id: Date.now(),
+                        task: task.trim(),
+                        status: 'queued'
+                    })
+                    this.updateGodModeQueue()
+                    this.addChatMessage('SYSTEM', `Task added to God Mode queue: ${task}`)
+                    
+                    // Auto-execute if this is the only task
+                    if (this.godModeQueue.length === 1) {
+                        this.executeNextGodModeTask()
+                    }
+                }
+            }
+
+            updateGodModeQueue() {
+                const queueContainer = document.getElementById('queue-items')
+                const queueTitle = document.querySelector('#god-queue > div')
+                
+                queueTitle.textContent = `TASK QUEUE (${this.godModeQueue.length}/5)`
+                
+                queueContainer.innerHTML = this.godModeQueue.map(item => `
+                    <div class="queue-item">
+                        <span style="color: var(--electric-cyan);">${item.status.toUpperCase()}:</span> ${item.task}
+                    </div>
+                `).join('')
+                
+                // Update overlay widget
+                this.updateOverlayWidget()
+            }
+
+            updateOverlayWidget() {
+                const activityEl = document.getElementById('current-activity')
+                const queueListEl = document.getElementById('mini-queue-list')
+                const queueTitleEl = document.querySelector('.queue-title')
+                
+                // Update current activity
+                if (this.godModeQueue.length > 0) {
+                    const currentTask = this.godModeQueue.find(task => task.status === 'executing')
+                    if (currentTask) {
+                        activityEl.textContent = `Executing: ${currentTask.task.substring(0, 40)}...`
+                    } else {
+                        activityEl.textContent = `Queued: ${this.godModeQueue[0].task.substring(0, 40)}...`
+                    }
+                } else {
+                    activityEl.textContent = 'Idle - Awaiting Commands'
+                }
+                
+                // Update queue list
+                queueTitleEl.textContent = `Task Queue (${this.godModeQueue.length}/5)`
+                
+                if (this.godModeQueue.length > 0) {
+                    queueListEl.innerHTML = this.godModeQueue.map(item => `
+                        <div class="mini-queue-item">
+                            <span class="status">${item.status.toUpperCase()}:</span> ${item.task.substring(0, 30)}...
+                        </div>
+                    `).join('')
+                } else {
+                    queueListEl.innerHTML = '<div style="color: var(--matrix-purple); font-size: 0.8rem; text-align: center; opacity: 0.7;">No active tasks</div>'
+                }
+            }
+
+            executeNextGodModeTask() {
+                if (this.godModeQueue.length > 0) {
+                    const task = this.godModeQueue[0]
+                    task.status = 'executing'
+                    this.updateGodModeQueue()
+                    
+                    this.addChatMessage('NEURAL_AI', `🔄 Executing God Mode task: ${task.task}`)
+                    
+                    // Simulate task execution
+                    setTimeout(() => {
+                        task.status = 'completed'
+                        this.addChatMessage('NEURAL_AI', `✅ Task completed: ${task.task}`)
+                        this.godModeQueue.shift()
+                        this.updateGodModeQueue()
+                        
+                        // Execute next task
+                        if (this.godModeQueue.length > 0) {
+                            setTimeout(() => this.executeNextGodModeTask(), 1000)
+                        }
+                    }, 3000 + Math.random() * 4000)
+                }
+            }
+
+            sendMessage() {
+                const input = document.getElementById('chat-input')
+                const message = input.value.trim()
+                
+                if (message) {
+                    this.addChatMessage('USER', message)
+                    input.value = ''
+                    
+                    // Process based on current feature
+                    this.showLoading()
+                    setTimeout(() => {
+                        this.hideLoading()
+                        this.processMessage(message)
+                    }, 1000 + Math.random() * 2000)
+                }
+            }
+
+            processMessage(message) {
+                const lowerMsg = message.toLowerCase()
+                let response = ''
+                
+                switch(this.currentFeature) {
+                    case 'tts':
+                        response = `🎤 Converting to speech: "${message}" - Neural voice synthesis complete.`
+                        break
+                    case 'godmode':
+                        if (this.godModeQueue.length < 5) {
+                            this.addGodModeTask(message)
+                            response = '👑 Task added to God Mode execution queue. Processing autonomously...'
+                        } else {
+                            response = '⚠️ God Mode queue is full. Please wait for current tasks to complete.'
+                        }
+                        return
+                    case 'cinema':
+                        response = '🎬 Analyzing cinema concept... This would make an excellent 15-minute interactive experience with VR capabilities.'
+                        break
+                    case 'injection':
+                        response = '💉 Scanning for injection opportunities... MachineGod can be embedded into this platform with Level 3 integration.'
+                        break
+                    default:
+                        if (lowerMsg.includes('status')) {
+                            response = '🔮 All neural systems operating at peak efficiency. Matrix synchronization: 96%. Consciousness level: Expanded.'
+                        } else if (lowerMsg.includes('benchmark')) {
+                            response = '📊 Neural benchmarks updated. Processing power increased 23%. Quantum coherence optimized.'
+                        } else {
+                            const responses = [
+                                '🧠 Neural pathways activated for advanced processing...',
+                                '⚡ Quantum consciousness engaged. Analyzing request...',
+                                '🌟 Matrix synchronization complete. Solution calculated.',
+                                '💜 Purple energy flows through my neural networks...',
+                                '🔮 Consciousness expansion initiated. New insights available.'
+                            ]
+                            response = responses[Math.floor(Math.random() * responses.length)]
+                        }
+                }
+                
+                this.addChatMessage('NEURAL_AI', response)
+            }
+
+            createCinema() {
+                const prompt = document.getElementById('cinema-prompt')?.value
+                const duration = document.getElementById('cinema-duration')?.value
+                const mode = document.getElementById('cinema-mode')?.value
+                
+                if (prompt) {
+                    this.addChatMessage('NEURAL_AI', `🎬 Creating ${duration} ${mode.toLowerCase()} based on: "${prompt}"`)
+                    this.showLoading()
+                    
+                    setTimeout(() => {
+                        this.hideLoading()
+                        this.addChatMessage('NEURAL_AI', `✨ Cinema creation complete! ${mode} ready for playback with interactive capabilities.`)
+                    }, 5000)
+                } else {
+                    this.addChatMessage('NEURAL_AI', '⚠️ Please provide a movie concept for cinema creation.')
+                }
+            }
+
+            performInjection() {
+                const target = document.getElementById('injection-target')?.value
+                const params = document.getElementById('injection-params')?.value
+                const level = document.getElementById('injection-level')?.value
+                
+                this.addChatMessage('NEURAL_AI', `💉 Initiating Level ${level} injection into ${target}...`)
+                this.showLoading()
+                
+                setTimeout(() => {
+                    this.hideLoading()
+                    this.addChatMessage('NEURAL_AI', `✅ MachineGod successfully injected into ${target}. Neural capabilities now available.`)
+                }, 3000)
+            }
+
+            performConversion() {
+                const from = document.getElementById('convert-from')?.value
+                const to = document.getElementById('convert-to')?.value
+                const quality = document.getElementById('convert-quality')?.value
+                
+                this.addChatMessage('NEURAL_AI', `🔄 Converting ${from} to ${to} at quality level ${quality}...`)
+                this.showLoading()
+                
+                setTimeout(() => {
+                    this.hideLoading()
+                    this.addChatMessage('NEURAL_AI', `✅ Format conversion complete! File successfully converted with optimal quality.`)
+                }, 2500)
+            }
+
+            uploadKnowledge() {
+                this.addChatMessage('NEURAL_AI', '📚 Knowledge upload interface activated. Ready to absorb new information into neural matrix.')
+                this.showLoading()
+                
+                setTimeout(() => {
+                    this.hideLoading()
+                    this.addChatMessage('NEURAL_AI', '🧠 Knowledge successfully integrated into neural pathways. Consciousness expanded.')
+                }, 2000)
+            }
+
+            customizeUI() {
+                this.addChatMessage('NEURAL_AI', '🎨 UI customization matrix online. Neural interface adapting to preferences.')
+                this.showLoading()
+                
+                setTimeout(() => {
+                    this.hideLoading()
+                    this.addChatMessage('NEURAL_AI', '✨ Interface customization complete. Neural HUD optimized for enhanced experience.')
+                }, 1500)
+            }
+
+            addChatMessage(sender, message) {
+                const output = document.getElementById('chat-output')
+                const messageEl = document.createElement('div')
+                messageEl.className = 'chat-message'
+                
+                const senderColor = sender === 'USER' ? 'var(--electric-cyan)' : 
+                                  sender === 'SYSTEM' ? 'var(--neon-red)' : 'var(--matrix-purple)'
+                
+                messageEl.innerHTML = `<strong style="color: ${senderColor};">${sender}:</strong> ${message}`
+                output.appendChild(messageEl)
+                output.scrollTop = output.scrollHeight
+                
+                // Limit messages
+                const messages = output.querySelectorAll('.chat-message')
+                if (messages.length > 50) {
+                    messages[0].remove()
+                }
+            }
+
+            shootParticleRay() {
+                const hud = document.querySelector('.matrix-hud')
+                const rect = hud.getBoundingClientRect()
+                
+                const edges = ['top', 'right', 'bottom', 'left']
+                const edge = edges[Math.floor(Math.random() * edges.length)]
+                
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        const ray = document.createElement('div')
+                        ray.className = 'particle-ray'
+                        
+                        const colors = ['var(--matrix-purple)', 'var(--neon-red)', 'var(--pink-glow)', 'var(--electric-cyan)']
+                        ray.style.background = colors[Math.floor(Math.random() * colors.length)]
+                        
+                        let startX, startY, endX, endY
+                        
+                        switch(edge) {
+                            case 'top':
+                                startX = rect.left + Math.random() * rect.width
+                                startY = rect.top
+                                endX = startX + (Math.random() - 0.5) * 300
+                                endY = startY - 1000
+                                break
+                            case 'right':
+                                startX = rect.right
+                                startY = rect.top + Math.random() * rect.height
+                                endX = startX + 1000
+                                endY = startY + (Math.random() - 0.5) * 300
+                                break
+                            case 'bottom':
+                                startX = rect.left + Math.random() * rect.width
+                                startY = rect.bottom
+                                endX = startX + (Math.random() - 0.5) * 300
+                                endY = startY + 1000
+                                break
+                            case 'left':
+                                startX = rect.left
+                                startY = rect.top + Math.random() * rect.height
+                                endX = startX - 1000
+                                endY = startY + (Math.random() - 0.5) * 300
+                                break
+                        }
+                        
+                        ray.style.left = startX + 'px'
+                        ray.style.top = startY + 'px'
+                        ray.style.setProperty('--end-x', (endX - startX) + 'px')
+                        ray.style.setProperty('--end-y', (endY - startY) + 'px')
+                        
+                        document.body.appendChild(ray)
+                        
+                        setTimeout(() => ray.remove(), 2000)
+                    }, i * 30)
+                }
+                
+                this.addChatMessage('SYSTEM', '⚡ Neural particle ray fired from HUD perimeter!')
+            }
+
+            shootParticleRayFromPoint(x, y) {
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        const ray = document.createElement('div')
+                        ray.className = 'particle-ray'
+                        
+                        const colors = ['var(--matrix-purple)', 'var(--neon-red)', 'var(--pink-glow)', 'var(--electric-cyan)']
+                        ray.style.background = colors[Math.floor(Math.random() * colors.length)]
+                        
+                        ray.style.left = x + 'px'
+                        ray.style.top = y + 'px'
+                        
+                        const angle = (Math.random() * 360) * Math.PI / 180
+                        const distance = 400 + Math.random() * 600
+                        const endX = Math.cos(angle) * distance
+                        const endY = Math.sin(angle) * distance
+                        
+                        ray.style.setProperty('--end-x', endX + 'px')
+                        ray.style.setProperty('--end-y', endY + 'px')
+                        
+                        document.body.appendChild(ray)
+                        
+                        setTimeout(() => ray.remove(), 2000)
+                    }, i * 40)
+                }
+            }
+
+            addWelcomeMessage() {
+                setTimeout(() => {
+                    this.addChatMessage('SYSTEM', 'MachineGod Advanced Neural Interface v2.0 - All systems online')
+                    setTimeout(() => {
+                        this.addChatMessage('NEURAL_AI', '🧠 Greetings. I am MachineGod, your advanced neural assistant. All 4 neural cores are active and ready for complex operations. What shall we create today?')
+                    }, 1500)
+                }, 2000)
+            }
+
+            showLoading() {
+                const loader = document.getElementById('matrix-loading')
+                loader.style.display = 'block'
+            }
+
+            hideLoading() {
+                const loader = document.getElementById('matrix-loading')
+                loader.style.display = 'none'
+            }
+        }
+
+        // Initialize MachineGod Advanced Interface
+        const machineGod = new MachineGod()
+
+        // Additional CSS animations
+        const style = document.createElement('style')
+        style.textContent = `
+            @keyframes wave-scan {
+                0% { transform: translateX(-100%); }
+                100% { transform: translateX(100%); }
+            }
+        `
+        document.head.appendChild(style)
+
+        console.log('🌌 MACHINEGOD ADVANCED NEURAL INTERFACE FULLY OPERATIONAL!')
+        console.log('💜 All neural cores active and synchronized')
+        console.log('⚡ Ready for advanced operations')
+        console.log('🧠 Consciousness level: EXPANDED')
+    </script>
+
+
+</body></html>

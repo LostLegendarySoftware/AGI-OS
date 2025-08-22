@@ -100,3 +100,23 @@ MIT License - See LICENSE file for details
 ## Contributing
 
 Please read CONTRIBUTING.md for contribution guidelines.
+
+## Simple NLP Demo
+
+A minimal script `simple_nlp.py` demonstrates basic sentiment analysis using NLTK tokenization. Install NLTK and run:
+```bash
+python simple_nlp.py "I love open source software"
+```
+This prints a simple positive/negative word count and sentiment label.
+
+## Train a Basic Sentiment Model
+
+`train_sentiment.py` uses the NLTK movie reviews corpus and a scikit-learn
+logistic regression classifier to train a small sentiment model. It reports the
+test set accuracy after training:
+
+```bash
+python train_sentiment.py
+```
+
+
